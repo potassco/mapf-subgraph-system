@@ -1,4 +1,3 @@
-#include <mutex>
 #include <filesystem>
 
 #include "instance.hpp"
@@ -19,7 +18,10 @@ void Instance::LoadAgents(string agents_path, string map_dir)
 	ifstream in;
 	in.open(agents_path);
 	if (!in.is_open())
+	{
+		cout << "Could not open " << agents_path << endl;
 		return;
+	}
 
 	char c_dump;
 	string line;
@@ -56,7 +58,10 @@ void Instance::LoadMap(string map_path)
 	ifstream in;
 	in.open(map_path);
 	if (!in.is_open())
+	{
+		cout << "Could not open " << map_path << endl;
 		return;
+	}
 
 	char c_dump;
 	string s_dump;
@@ -171,11 +176,14 @@ void Instance::DebugPrint(vector<vector<int> >& map_to_print)
 	for (size_t i = 0; i < map_to_print.size(); i++)
 	{
 		for (size_t j = 0; j < map_to_print[i].size(); j++)
-			/*if (map_to_print[i][j] != -1)
-				cout << ".";
+			if (map[i][j] == -1)
+				cout << "@";
+			else if (map_to_print[i][j] == -1)
+				cout << "#";
 			else
-				cout << "@";*/
-			cout << map_to_print[i][j] << " ";
+				cout << ".";
+
+			//cout << map_to_print[i][j] << " ";
 		cout << endl;
 	}
 

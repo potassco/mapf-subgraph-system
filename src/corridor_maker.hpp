@@ -9,7 +9,7 @@ public:
 
 	void ResetComputedMap();
 	void PathsToMap(int);
-	bool ExpandMap(int);
+	bool ExpandMap(int, int, int);
 	void MakeTEG(int,int);
 	int GiveNewNumbering();
 
@@ -21,4 +21,7 @@ private:
 	Instance* inst;
 	
 	bool has_numbering;
+	bool vertex_reachable;
+
+	bool IsReachable(int, int, int, int);
 };

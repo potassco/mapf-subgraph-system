@@ -18,10 +18,10 @@ int main(int argc, char** argv)
 	char *tvalue = NULL;
 
 	int timeout = 300;
-	string work_dir = "bin";
+	string work_dir = "models";
 	string statistic_dir = "statistics";
-	string input_dir = "instances";
-	string map_dir = "maps";
+	string input_dir = "resources/instances";
+	string map_dir = "resources/maps";
 
 	// parse arguments
 	opterr = 0;

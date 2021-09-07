@@ -23,10 +23,8 @@ void CorridorMaker::PathsToMap(int agents)
 	has_numbering = false;
 }
 
-bool CorridorMaker::ExpandMap(int corr_width)
+bool CorridorMaker::ExpandMap(int corr_width, int agents, int mks)
 {
-	// TODO - if expanded nodes are not reachable in given makespan, then adding them has no meaning
-
 	bool expanded = false;
 	int corridor_distance = 1;
 
@@ -47,26 +45,31 @@ bool CorridorMaker::ExpandMap(int corr_width)
 			{
 				if (computed_map[i][j] > -1 || inst->map[i][j] == -1)
 					continue;
+				vertex_reachable = false;
 
-				if (i > 0 && computed_map[i-1][j] != -1 && computed_map[i-1][j] < corridor_distance)
+				if (i > 0 && computed_map[i-1][j] != -1 && computed_map[i-1][j] < corridor_distance && IsReachable(i, j, agents, mks))
 				{
 					computed_map[i][j] = corridor_distance;
 					expanded = true;
+					continue;
 				}
-				if (i < inst->height - 1 && computed_map[i+1][j] != -1 && computed_map[i+1][j] < corridor_distance)
+				if (i < inst->height - 1 && computed_map[i+1][j] != -1 && computed_map[i+1][j] < corridor_distance && IsReachable(i, j, agents, mks))
 				{
 					computed_map[i][j] = corridor_distance;
 					expanded = true;
+					continue;
 				}
-				if (j > 0 && computed_map[i][j-1] != -1 && computed_map[i][j-1] < corridor_distance)
+				if (j > 0 && computed_map[i][j-1] != -1 && computed_map[i][j-1] < corridor_distance && IsReachable(i, j, agents, mks))
 				{
 					computed_map[i][j] = corridor_distance;
 					expanded = true;
+					continue;
 				}
-				if (j < inst->width - 1 && computed_map[i][j+1] != -1 && computed_map[i][j+1] < corridor_distance)
+				if (j < inst->width - 1 && computed_map[i][j+1] != -1 && computed_map[i][j+1] < corridor_distance && IsReachable(i, j, agents, mks))
 				{
 					computed_map[i][j] = corridor_distance;
 					expanded = true;
+					continue;
 				}
 			}
 		}
@@ -105,4 +108,21 @@ void CorridorMaker::MakeTEG(int agents, int mks)
 				for (size_t y = 0; y < computed_map[x].size(); y++)
 					if (computed_map[x][y] != -1 && inst->length_from_start[a][inst->map[x][y]] <= t && inst->length_from_goal[a][inst->map[x][y]] <= mks - t)
 						time_expanded_graph[t][a].push_back(computed_map[x][y]);
+}
+
+bool CorridorMaker::IsReachable(int x, int y, int agents, int mks)
+{
+	if (vertex_reachable)
+		return true;;
+
+	for (size_t i = 0; i < agents; i++)
+	{
+		if (inst->length_from_start[i][inst->map[x][y]] + inst->length_from_goal[i][inst->map[x][y]] <= mks)
+		{
+			vertex_reachable = true;
+			return true;
+		}
+	}
+
+	return false;
 }

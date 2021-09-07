@@ -5,6 +5,7 @@
 
 #include "instance.hpp"
 #include "sat_solver.hpp"
+#include "asp_solver.hpp"
 #include "corridor_maker.hpp"
 
 class Strategy

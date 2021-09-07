@@ -38,12 +38,15 @@ Strategy::Strategy(char c, string af, string bs, int to, string wd, string sd, s
 
 	if (bs.compare("sat") == 0)
 	{
-		sol = new SatSolver(alg, inst, corr, wd, sd, GetFilename(af));
+		sol = new SatSolver(alg, inst, corr, wd.append("/SAT_model"), sd, GetFilename(af));
 		sol->name = "sat";
 	}
 
-	// if (bs.compare("asp") == 0)
-	// 	sol = new AspSolver(alg, inst, corr, wd, sd, GetFilename(af));
+	if (bs.compare("asp") == 0)
+	{
+		sol = new AspSolver(alg, inst, corr, wd.append("/ASP_model"), sd, GetFilename(af));
+		sol->name = "asp";
+	}
 }
 
 Strategy::~Strategy()
@@ -81,6 +84,7 @@ int Strategy::RunTests()
 			number_of_agents_to_compute += 5;
 			p_expand = 1;
 			sol->ResetStat(timeout);
+			LB = inst->GetLB(number_of_agents_to_compute) + 1;
 
 			if (number_of_agents_to_compute > inst->agents.size())
 				break;
@@ -89,15 +93,13 @@ int Strategy::RunTests()
 			{
 				corr->ResetComputedMap();
 				corr->PathsToMap(number_of_agents_to_compute);
-				corr->ExpandMap(1);
+				corr->ExpandMap(1, number_of_agents_to_compute, LB + bonus_makespan);
 			}
 			if (P || C)
 			{
 				corr->ResetComputedMap();
 				corr->PathsToMap(number_of_agents_to_compute);
 			}
-
-			LB = inst->GetLB(number_of_agents_to_compute);
 		}
 
 		if (result == -1) // -1 = no solution
@@ -106,7 +108,7 @@ int Strategy::RunTests()
 				bonus_makespan++;
 			if (P)
 			{
-				bool res = corr->ExpandMap(p_expand);
+				bool res = corr->ExpandMap(p_expand, number_of_agents_to_compute, LB + bonus_makespan);
 				p_expand = p_expand * 2;
 
 				if (!res) //if not expanded then add makespan and make max pruning
@@ -120,7 +122,7 @@ int Strategy::RunTests()
 			if (C)
 			{
 				bonus_makespan++;
-				corr->ExpandMap(1);
+				corr->ExpandMap(1, number_of_agents_to_compute, LB + bonus_makespan);
 			}
 		}
 

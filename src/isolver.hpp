@@ -36,9 +36,3 @@ protected:
 	float total_solvertime;
 };
 
-/*class AspSolver : public ISolver
-{
-public:
-	using ISolver::ISolver;
-	int Solve() {return 1;};
-};*/

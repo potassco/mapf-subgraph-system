@@ -1,0 +1,213 @@
+% Static planner for multi-agent path finding for grid maps and the makespan objective
+% using train motion on agents
+% swap is forbidden
+
+import sat.
+
+main([InsFile]) =>
+	%printf("solving %s\n",InsFile),
+	cl(InsFile),
+	main.
+
+main =>
+	ins(Graph, As, IB),				   % read input
+	cl_facts(Graph,[$neibs(+,-)]),
+	N = len(Graph),					 % N = number of nodes
+	create_edges(N, E),				 % E = number of edges
+	time(once(path(N,E,to_array(As),IB,B))),
+	printf("done\n").
+	%output_plan(B).
+
+test =>
+	testins(Graph, As, IB),				   % read input
+	cl_facts(Graph,[$neibs(+,-)]),
+	N = len(Graph),					 % N = number of nodes
+	create_edges(N, E),				 % E = number of edges
+	time(once(path(N,E,to_array(As),IB,B))),
+	output_plan(B).
+
+
+%%%%%%%%%%%%%%%%%%%%
+% MAIN COMPUTATION %
+%%%%%%%%%%%%%%%%%%%%
+
+path(N,E,As,IB,B) =>
+	K = len(As),
+	M = len(IB),
+	ME = M - 1,
+
+	B = new_array(M,K,N),
+	C = new_array(ME,K,E),
+
+	foreach (T in 1..M, A in 1..K)
+		set_B(IB[T,A],B[T,A],0)
+	end,
+
+	%printf("arrays completed!\n"),
+
+	% Initialize the first and last states
+	foreach(A in 1..K)	
+		(V,FV) = As[A],
+		B[1,A,V] = 1,
+		B[M,A,FV] = 1
+	end,
+	preprocess_edges(K,N,ME,B,E,C),
+
+	%printf("preprocessing done!\n"),
+
+	%printf("B %w\n",B),
+
+	B :: 0..1,
+	C :: 0..1,
+
+	%printf("B %w\n",B),
+
+	% Each agent occupies up to one vertex at each time.
+	foreach (T in 1..M, A in 1..K)
+		sum([B[T,A,V] : V in 1..N]) #=< 1
+	end,
+
+	% No two agents occupy the same vertex at any time.
+	foreach(T in 1..M, V in 1..N) 
+		sum([B[T,A,V] : A in 1..K]) #=< 1   
+	end,
+
+	% if an edge is used in one direction, it can not be used in the other direction (no swap)
+	foreach(T in 1..ME, EID in 1..E) 
+		edgeid(EID, U, V),
+		edge(OppositeEID, V, U),
+		EList = remove_dups([EID,OppositeEID]),
+		sum([C[T,A,W] : A in 1..K, W in EList]) #=< 1   
+	end,
+
+	% if an agent is in a node, it needs to move through one of the edges from that node
+	foreach(T in 1..ME, A in 1..K, V in 1..N) 
+		out_edges(V,EList),
+		B[T,A,V] #=> sum([C[T,A,W] : W in EList]) #= 1
+	end,
+
+	% if agent is using an edge, it must arrive to the connected node in next timestep
+	foreach(T in 1..ME, A in 1..K, EID in 1..E) 
+		edgeid(EID,_,V),
+		C[T,A,EID] #=> B[T+1,A,V] #= 1
+	end,
+
+	printf("solving start\n"),
+
+	time(solve(B)).
+	%printf("^ time of SAT solving\n").
+
+
+%%%%%%%%%%%%%%%%%%%%%
+% UTILITY FUNCTIONS %
+%%%%%%%%%%%%%%%%%%%%%
+
+% if agent can not be in a vertex, then he could not use any edge connected to it
+preprocess_edges(K,N,M1,B,E,C) =>
+	% outgoing edges
+	foreach(A in 1..K, T in 1..M1-1, V in 1..N)
+		if B[T,A,V] == 0 then
+			out_edges(V,EList),
+			foreach(EID in EList)
+				C[T,A,EID] = 0
+			end
+		end
+	end,
+
+	% incoming edges - works only for undirected graphs!!!
+	foreach(A in 1..K, T in 2..M1, V in 1..N)
+		if B[T,A,V] == 0 then
+			out_edges(V,EList),
+			foreach(EID in EList)
+				edgeid(EID, V, U),
+				edge(OppositeEID, U, V),
+				C[T-1,A,OppositeEID] = 0
+			end
+		end
+	end.
+
+%
+set_B([X|IB],B,Prev) =>
+	foreach(V in Prev+1..X-1)
+		B[V] = 0
+	end,
+	set_B(IB,B,X).
+
+set_B([],B,Prev) =>
+	foreach(V in Prev+1..len(B))
+		B[V] = 0
+	end.
+
+% create $edge from $neibs
+create_edges(N, E) =>
+	Ed1 = [],
+	Ed2 = [],
+	EID = 1,
+	foreach(V in 1..N)
+		neibs(V,Neibs),
+		L = len(Neibs),
+		foreach(I in 1..L)
+			Ed1 := [$edge(EID, V, Neibs[I])|Ed1],
+			Ed2 := [$edgeid(EID, V, Neibs[I])|Ed2],
+			EID := EID + 1
+		end
+	end,
+
+	cl_facts(Ed1,[$edge(-,+,+)]),
+	cl_facts(Ed2,[$edgeid(+,-,-)]),
+	E = len(Ed1).
+
+
+% for node W, get list of outgoing edges
+out_edges(W,EList) =>
+	ETMP = [],
+	neibs(W,Neibs),
+	L = len(Neibs),
+	foreach(I in 1..L)
+		edge(EID,W,Neibs[I]),
+		ETMP := [EID] ++ ETMP
+	end,
+	EList = ETMP.
+
+output_plan(B) =>
+	M = len(B) - 1,
+	K = len(B[1]),
+	N = len(B[1,1]),
+	printf("agents | timesteps\n"),
+	printf("%w %w\n",K,M+1),
+	printf("timesteps %w\n",M+1),
+	foreach (A in 1..K)
+		foreach (T in 1..M+1)
+			foreach (V in 1..N)
+				if B[T,A,V] == 1 then
+					printf("%w ",V)
+				end
+			end
+		end,
+		nl
+	end.
+
+
+%%%%%%%%%%%%%%%
+% TEST INPUTS %
+%%%%%%%%%%%%%%%
+
+testins1(Graph, As, B) =>
+	Graph = [
+	$neibs(1,[1,3]),
+	$neibs(2,[2,3]),
+	$neibs(3,[3,4,1,2]),
+	$neibs(4,[4,3,5,6]),
+	$neibs(5,[5,4]),
+	$neibs(6,[6,4])
+	],
+	As = [(1,5)],
+	B = new_array(5,1),
+	B[1,1] = flatten([1..3]),
+	B[2,1] = flatten([3,5]),
+	B[3,1] = flatten([4]),
+	B[4,1] = flatten([1,3,5..6]),
+	B[5,1] = flatten([5]).
+
+
+testins(Graph, As, B) => Graph = [ $neibs(1,[1,3]), $neibs(2,[2,5,3]), $neibs(3,[3,1,6,2,4]), $neibs(4,[4,7,3]), $neibs(5,[5,2,11,6]), $neibs(6,[6,3,12,5,7]), $neibs(7,[7,4,13,6]), $neibs(8,[8,17,9]), $neibs(9,[9,18,8,10]), $neibs(10,[10,19,9]), $neibs(11,[11,5,21,12]), $neibs(12,[12,6,22,11,13]), $neibs(13,[13,7,23,12,14]), $neibs(14,[14,24,13,15]), $neibs(15,[15,25,14]), $neibs(16,[16,27,17]), $neibs(17,[17,8,28,16,18]), $neibs(18,[18,9,29,17,19]), $neibs(19,[19,10,30,18,20]), $neibs(20,[20,19]), $neibs(21,[21,11,22]), $neibs(22,[22,12,21,23]), $neibs(23,[23,13,31,22,24]), $neibs(24,[24,14,23,25]), $neibs(25,[25,15,32,24,26]), $neibs(26,[26,33,25]), $neibs(27,[27,16,34,28]), $neibs(28,[28,17,35,27,29]), $neibs(29,[29,18,36,28,30]), $neibs(30,[30,19,29]), $neibs(31,[31,23]), $neibs(32,[32,25,38,33]), $neibs(33,[33,26,39,32]), $neibs(34,[34,27,35]), $neibs(35,[35,28,40,34,36]), $neibs(36,[36,29,35]), $neibs(37,[37,41,38]), $neibs(38,[38,32,42,37,39]), $neibs(39,[39,33,43,38]), $neibs(40,[40,35]), $neibs(41,[41,37,44,42]), $neibs(42,[42,38,45,41,43]), $neibs(43,[43,39,46,42]), $neibs(44,[44,41,47,45]), $neibs(45,[45,42,48,44,46]), $neibs(46,[46,43,49,45]), $neibs(47,[47,44,48]), $neibs(48,[48,45,47,49]), $neibs(49,[49,46,51,48,50]), $neibs(50,[50,49]), $neibs(51,[51,49,52]), $neibs(52,[52,51,53]), $neibs(53,[53,55,52,54]), $neibs(54,[54,53]), $neibs(55,[55,53,58]), $neibs(56,[56,61,57]), $neibs(57,[57,56,58]), $neibs(58,[58,55,62,57,59]), $neibs(59,[59,63,58]), $neibs(60,[60,64,61]), $neibs(61,[61,56,65,60]), $neibs(62,[62,58,66,63]), $neibs(63,[63,59,62]), $neibs(64,[64,60,67,65]), $neibs(65,[65,61,68,64]), $neibs(66,[66,62,70]), $neibs(67,[67,64,71,68]), $neibs(68,[68,65,72,67,69]), $neibs(69,[69,68,70]), $neibs(70,[70,66,73,69]), $neibs(71,[71,67,77,72]), $neibs(72,[72,68,78,71]), $neibs(73,[73,70,80]), $neibs(74,[74,84,75]), $neibs(75,[75,85,74,76]), $neibs(76,[76,86,75]), $neibs(77,[77,71,78]), $neibs(78,[78,72,93,77,79]), $neibs(79,[79,78,80]), $neibs(80,[80,73,94,79,81]), $neibs(81,[81,95,80]), $neibs(82,[82,98,83]), $neibs(83,[83,99,82,84]), $neibs(84,[84,74,100,83,85]), $neibs(85,[85,75,84,86]), $neibs(86,[86,76,101,85,87]), $neibs(87,[87,102,86]), $neibs(88,[88,103,89]), $neibs(89,[89,104,88]), $neibs(90,[90,106,91]), $neibs(91,[91,107,90,92]), $neibs(92,[92,108,91]), $neibs(93,[93,78]), $neibs(94,[94,80,112,95]), $neibs(95,[95,81,113,94]), $neibs(96,[96,115]), $neibs(97,[97,117]), $neibs(98,[98,82,99]), $neibs(99,[99,83,119,98,100]), $neibs(100,[100,84,99]), $neibs(101,[101,86,121,102]), $neibs(102,[102,87,122,101]), $neibs(103,[103,88,125,104]), $neibs(104,[104,89,126,103,105]), $neibs(105,[105,127,104,106]), $neibs(106,[106,90,105,107]), $neibs(107,[107,91,128,106,108]), $neibs(108,[108,92,107,109]), $neibs(109,[109,129,108,110]), $neibs(110,[110,130,109]), $neibs(111,[111,132,112]), $neibs(112,[112,94,133,111,113]), $neibs(113,[113,95,134,112,114]), $neibs(114,[114,135,113,115]), $neibs(115,[115,96,136,114,116]), $neibs(116,[116,115,117]), $neibs(117,[117,97,137,116,118]), $neibs(118,[118,138,117]), $neibs(119,[119,99,139]), $neibs(120,[120,121]), $neibs(121,[121,101,120,122]), $neibs(122,[122,102,121]), $neibs(123,[123,124]), $neibs(124,[124,141,123,125]), $neibs(125,[125,103,124,126]), $neibs(126,[126,104,125,127]), $neibs(127,[127,105,126]), $neibs(128,[128,107]), $neibs(129,[129,109,142,130]), $neibs(130,[130,110,143,129,131]), $neibs(131,[131,130,132]), $neibs(132,[132,111,144,131,133]), $neibs(133,[133,112,145,132,134]), $neibs(134,[134,113,146,133,135]), $neibs(135,[135,114,134,136]), $neibs(136,[136,115,135]), $neibs(137,[137,117,138]), $neibs(138,[138,118,147,137]), $neibs(139,[139,119,151,140]), $neibs(140,[140,152,139]), $neibs(141,[141,124,153]), $neibs(142,[142,129,143]), $neibs(143,[143,130,142]), $neibs(144,[144,132,145]), $neibs(145,[145,133,154,144,146]), $neibs(146,[146,134,155,145]), $neibs(147,[147,138,156,148]), $neibs(148,[148,157,147,149]), $neibs(149,[149,148,150]), $neibs(150,[150,158,149,151]), $neibs(151,[151,139,150,152]), $neibs(152,[152,140,151]), $neibs(153,[153,141]), $neibs(154,[154,145,160,155]), $neibs(155,[155,146,161,154]), $neibs(156,[156,147,157]), $neibs(157,[157,148,156]), $neibs(158,[158,150]), $neibs(159,[159,162,160]), $neibs(160,[160,154,163,159,161]), $neibs(161,[161,155,164,160]), $neibs(162,[162,159,165,163]), $neibs(163,[163,160,166,162,164]), $neibs(164,[164,161,167,163]), $neibs(165,[165,162,172,166]), $neibs(166,[166,163,173,165,167]), $neibs(167,[167,164,174,166,168]), $neibs(168,[168,175,167,169]), $neibs(169,[169,176,168,170]), $neibs(170,[170,177,169,171]), $neibs(171,[171,178,170]), $neibs(172,[172,165,173]), $neibs(173,[173,166,184,172,174]), $neibs(174,[174,167,173,175]), $neibs(175,[175,168,185,174,176]), $neibs(176,[176,169,186,175,177]), $neibs(177,[177,170,187,176,178]), $neibs(178,[178,171,177,179]), $neibs(179,[179,188,178,180]), $neibs(180,[180,189,179,181]), $neibs(181,[181,190,180,182]), $neibs(182,[182,191,181,183]), $neibs(183,[183,192,182]), $neibs(184,[184,173]), $neibs(185,[185,175,186]), $neibs(186,[186,176,185,187]), $neibs(187,[187,177,186]), $neibs(188,[188,179,197,189]), $neibs(189,[189,180,198,188,190]), $neibs(190,[190,181,199,189,191]), $neibs(191,[191,182,190,192]), $neibs(192,[192,183,200,191,193]), $neibs(193,[193,201,192,194]), $neibs(194,[194,202,193,195]), $neibs(195,[195,203,194,196]), $neibs(196,[196,204,195]), $neibs(197,[197,188,198]), $neibs(198,[198,189,197,199]), $neibs(199,[199,190,198]), $neibs(200,[200,192,206,201]), $neibs(201,[201,193,207,200,202]), $neibs(202,[202,194,208,201,203]), $neibs(203,[203,195,202,204]), $neibs(204,[204,196,209,203,205]), $neibs(205,[205,210,204]), $neibs(206,[206,200,207]), $neibs(207,[207,201,206,208]), $neibs(208,[208,202,207]), $neibs(209,[209,204,210]), $neibs(210,[210,205,212,209,211]), $neibs(211,[211,213,210]), $neibs(212,[212,210,213]), $neibs(213,[213,211,212,214]), $neibs(214,[214,213])], As = [(35,19),(61,94),(3,62),(141,122),(53,213)], B = new_array(37,5), B[1,1] = flatten([1..214]), B[1,2] = flatten([1..214]), B[1,3] = flatten([1..214]), B[1,4] = flatten([1..214]), B[1,5] = flatten([1..214]), B[2,1] = flatten([1..214]), B[2,2] = flatten([1..214]), B[2,3] = flatten([1..214]), B[2,4] = flatten([1..214]), B[2,5] = flatten([1..214]), B[3,1] = flatten([1..214]), B[3,2] = flatten([1..214]), B[3,3] = flatten([1..214]), B[3,4] = flatten([1..214]), B[3,5] = flatten([1..214]), B[4,1] = flatten([1..214]), B[4,2] = flatten([1..214]), B[4,3] = flatten([1..214]), B[4,4] = flatten([1..214]), B[4,5] = flatten([1..214]), B[5,1] = flatten([1..214]), B[5,2] = flatten([1..214]), B[5,3] = flatten([1..214]), B[5,4] = flatten([1..214]), B[5,5] = flatten([1..214]), B[6,1] = flatten([1..214]), B[6,2] = flatten([1..214]), B[6,3] = flatten([1..214]), B[6,4] = flatten([1..214]), B[6,5] = flatten([1..214]), B[7,1] = flatten([1..214]), B[7,2] = flatten([1..214]), B[7,3] = flatten([1..214]), B[7,4] = flatten([1..214]), B[7,5] = flatten([1..214]), B[8,1] = flatten([1..214]), B[8,2] = flatten([1..214]), B[8,3] = flatten([1..214]), B[8,4] = flatten([1..214]), B[8,5] = flatten([1..214]), B[9,1] = flatten([1..214]), B[9,2] = flatten([1..214]), B[9,3] = flatten([1..214]), B[9,4] = flatten([1..214]), B[9,5] = flatten([1..214]), B[10,1] = flatten([1..214]), B[10,2] = flatten([1..214]), B[10,3] = flatten([1..214]), B[10,4] = flatten([1..214]), B[10,5] = flatten([1..214]), B[11,1] = flatten([1..214]), B[11,2] = flatten([1..214]), B[11,3] = flatten([1..214]), B[11,4] = flatten([1..214]), B[11,5] = flatten([1..214]), B[12,1] = flatten([1..214]), B[12,2] = flatten([1..214]), B[12,3] = flatten([1..214]), B[12,4] = flatten([1..214]), B[12,5] = flatten([1..214]), B[13,1] = flatten([1..214]), B[13,2] = flatten([1..214]), B[13,3] = flatten([1..214]), B[13,4] = flatten([1..214]), B[13,5] = flatten([1..214]), B[14,1] = flatten([1..214]), B[14,2] = flatten([1..214]), B[14,3] = flatten([1..214]), B[14,4] = flatten([1..214]), B[14,5] = flatten([1..214]), B[15,1] = flatten([1..214]), B[15,2] = flatten([1..214]), B[15,3] = flatten([1..214]), B[15,4] = flatten([1..214]), B[15,5] = flatten([1..214]), B[16,1] = flatten([1..214]), B[16,2] = flatten([1..214]), B[16,3] = flatten([1..214]), B[16,4] = flatten([1..214]), B[16,5] = flatten([1..214]), B[17,1] = flatten([1..214]), B[17,2] = flatten([1..214]), B[17,3] = flatten([1..214]), B[17,4] = flatten([1..214]), B[17,5] = flatten([1..214]), B[18,1] = flatten([1..214]), B[18,2] = flatten([1..214]), B[18,3] = flatten([1..214]), B[18,4] = flatten([1..214]), B[18,5] = flatten([1..214]), B[19,1] = flatten([1..214]), B[19,2] = flatten([1..214]), B[19,3] = flatten([1..214]), B[19,4] = flatten([1..214]), B[19,5] = flatten([1..214]), B[20,1] = flatten([1..214]), B[20,2] = flatten([1..214]), B[20,3] = flatten([1..214]), B[20,4] = flatten([1..214]), B[20,5] = flatten([1..214]), B[21,1] = flatten([1..214]), B[21,2] = flatten([1..214]), B[21,3] = flatten([1..214]), B[21,4] = flatten([1..214]), B[21,5] = flatten([1..214]), B[22,1] = flatten([1..214]), B[22,2] = flatten([1..214]), B[22,3] = flatten([1..214]), B[22,4] = flatten([1..214]), B[22,5] = flatten([1..214]), B[23,1] = flatten([1..214]), B[23,2] = flatten([1..214]), B[23,3] = flatten([1..214]), B[23,4] = flatten([1..214]), B[23,5] = flatten([1..214]), B[24,1] = flatten([1..214]), B[24,2] = flatten([1..214]), B[24,3] = flatten([1..214]), B[24,4] = flatten([1..214]), B[24,5] = flatten([1..214]), B[25,1] = flatten([1..214]), B[25,2] = flatten([1..214]), B[25,3] = flatten([1..214]), B[25,4] = flatten([1..214]), B[25,5] = flatten([1..214]), B[26,1] = flatten([1..214]), B[26,2] = flatten([1..214]), B[26,3] = flatten([1..214]), B[26,4] = flatten([1..214]), B[26,5] = flatten([1..214]), B[27,1] = flatten([1..214]), B[27,2] = flatten([1..214]), B[27,3] = flatten([1..214]), B[27,4] = flatten([1..214]), B[27,5] = flatten([1..214]), B[28,1] = flatten([1..214]), B[28,2] = flatten([1..214]), B[28,3] = flatten([1..214]), B[28,4] = flatten([1..214]), B[28,5] = flatten([1..214]), B[29,1] = flatten([1..214]), B[29,2] = flatten([1..214]), B[29,3] = flatten([1..214]), B[29,4] = flatten([1..214]), B[29,5] = flatten([1..214]), B[30,1] = flatten([1..214]), B[30,2] = flatten([1..214]), B[30,3] = flatten([1..214]), B[30,4] = flatten([1..214]), B[30,5] = flatten([1..214]), B[31,1] = flatten([1..214]), B[31,2] = flatten([1..214]), B[31,3] = flatten([1..214]), B[31,4] = flatten([1..214]), B[31,5] = flatten([1..214]), B[32,1] = flatten([1..214]), B[32,2] = flatten([1..214]), B[32,3] = flatten([1..214]), B[32,4] = flatten([1..214]), B[32,5] = flatten([1..214]), B[33,1] = flatten([1..214]), B[33,2] = flatten([1..214]), B[33,3] = flatten([1..214]), B[33,4] = flatten([1..214]), B[33,5] = flatten([1..214]), B[34,1] = flatten([1..214]), B[34,2] = flatten([1..214]), B[34,3] = flatten([1..214]), B[34,4] = flatten([1..214]), B[34,5] = flatten([1..214]), B[35,1] = flatten([1..214]), B[35,2] = flatten([1..214]), B[35,3] = flatten([1..214]), B[35,4] = flatten([1..214]), B[35,5] = flatten([1..214]), B[36,1] = flatten([1..214]), B[36,2] = flatten([1..214]), B[36,3] = flatten([1..214]), B[36,4] = flatten([1..214]), B[36,5] = flatten([1..214]), B[37,1] = flatten([1..214]), B[37,2] = flatten([1..214]), B[37,3] = flatten([1..214]), B[37,4] = flatten([1..214]), B[37,5] = flatten([1..214]).

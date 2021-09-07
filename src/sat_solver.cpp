@@ -13,7 +13,7 @@ int SatSolver::Solve(int agent_number, int mks)
 	PrintInstance(agent_number, mks);
 
 	stringstream exec;
-	exec << "timeout " << (int)timeout + 1 << " " << work_dir << "/picat " << work_dir << "/mks_al.pi " << work_dir << "/tmp.pi" << " > " << work_dir << "/output";
+	exec << "timeout " << (int)timeout + 1 << " " << work_dir << "/picat " << work_dir << "/mks_al.pi " << work_dir << "/instance.pi" << " > " << work_dir << "/output_sat";
 
 	system(exec.str().c_str());
 
@@ -24,7 +24,7 @@ void SatSolver::PrintInstance(int agent_number, int mks)
 {
 	ofstream picat;
 	string ofile = work_dir;
-	picat.open(ofile.append("/tmp.pi"));
+	picat.open(ofile.append("/instance.pi"));
 	if (picat.is_open())
 	{
 		picat << "ins(Graph, As, B) =>" << " ";
@@ -126,7 +126,7 @@ int SatSolver::ReadResults(int agent_number, int mks)
 {
 	string line;
 	string ifile = work_dir;
-	ifstream input(ifile.append("/output"));
+	ifstream input(ifile.append("/output_sat"));
 	if (input.is_open())
 	{
 		float solver_time = 0;
@@ -172,7 +172,7 @@ int SatSolver::ReadResults(int agent_number, int mks)
 
 		ofstream output;
 		string ofile = stat_dir;
-		output.open(ofile.append("/").append(inst->agents_file).append("_").append(alg).append("_sat.log"), ios::app);
+		output.open(ofile.append("/").append(inst->agents_file).append("_").append(alg).append("_").append(name).append(".log"), ios::app);
 		if (output.is_open())
 		{
 			string res;
@@ -204,7 +204,7 @@ int SatSolver::ReadResults(int agent_number, int mks)
 		if (solution_found)
 		{
 			ofile = stat_dir;
-			output.open(ofile.append("/").append(inst->agents_file).append("_").append(alg).append("_sat.res"), ios::app);
+			output.open(ofile.append("/").append(inst->agents_file).append("_").append(alg).append("_").append(name).append(".res"), ios::app);
 			if (output.is_open())
 			{
 				output << inst->agents_file << "\t"
