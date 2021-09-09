@@ -7,8 +7,6 @@ int AspSolver::Solve(int agent_number, int mks)
 	if (timeout < 0)
 		return 1;
 
-	mks = mks - 1; // different numbering in ASP (nuber of actions rather than number of states)
-
 	corr->GiveNewNumbering();
 
 	PrintInstance(agent_number, mks);
@@ -84,8 +82,8 @@ int AspSolver::ReadResults(int agent_number, int mks)
 				while (getline(ssline, part, ' '))
 					parsed_line.push_back(part);
 
-				solver_time = stof(parsed_line[10]);
-				total_time = stof(parsed_line[12]);
+				solver_time = stof(parsed_line[12]);
+				total_time = stof(parsed_line[10]);
 			}
 		}
 

@@ -7,6 +7,8 @@ int SatSolver::Solve(int agent_number, int mks)
 	if (timeout < 0)
 		return 1;
 
+	mks = mks + 1; // different numbering of makespan -- number of states rather than number of actions
+
 	corr->GiveNewNumbering();
 	corr->MakeTEG(agent_number, mks);
 
@@ -124,6 +126,8 @@ void SatSolver::PrintInstance(int agent_number, int mks)
 
 int SatSolver::ReadResults(int agent_number, int mks)
 {
+	mks = mks - 1; //change numbering back to stay consistent with ASP solver
+
 	string line;
 	string ifile = work_dir;
 	ifstream input(ifile.append("/output_sat"));

@@ -84,7 +84,7 @@ int Strategy::RunTests()
 			number_of_agents_to_compute += 5;
 			p_expand = 1;
 			sol->ResetStat(timeout);
-			LB = inst->GetLB(number_of_agents_to_compute) + 1;
+			LB = inst->GetLB(number_of_agents_to_compute);
 
 			if (number_of_agents_to_compute > inst->agents.size())
 				break;

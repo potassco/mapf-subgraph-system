@@ -21,4 +21,7 @@ clean:
 	rm -f models/SAT_model/instance.pi models/SAT_model/output_sat
 
 test: corridor_framework
-	$(B_DIR)/corridor_framework -i ../resources/instances/test_grouped.scen -s p -b asp -t 10
+	$(B_DIR)/corridor_framework -i resources/instances/test_grouped.scen -s p -b asp -t 1
+
+experiment: corridor_framework
+	sh experiment.sh
