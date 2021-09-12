@@ -74,6 +74,13 @@ int AspSolver::ReadResults(int agent_number, int mks)
 				continue;
 			}
 
+			if (line.compare("UNSATISFIABLE") == 0)	// solution found
+			{
+				solution_found = false;
+				timeouted = false;
+				continue;
+			}
+
 			if (line.rfind("Time", 0) == 0)	// time of computation
 			{
 				stringstream ssline(line);
@@ -129,8 +136,8 @@ int AspSolver::ReadResults(int agent_number, int mks)
 				output << inst->agents_file << "\t"
 					<< agent_number << "\t"
 					<< inst->number_of_vertices << "\t"
-					<< corr->vertices << "\t"
 					<< inst->GetLB(agent_number) << "\t"
+					<< corr->vertices << "\t"
 					<< mks << "\t"
 					<< total_solvertime << "\t"
 					<< total_runtime << endl;

@@ -214,8 +214,8 @@ int SatSolver::ReadResults(int agent_number, int mks)
 				output << inst->agents_file << "\t"
 					<< agent_number << "\t"
 					<< inst->number_of_vertices << "\t"
-					<< corr->vertices << "\t"
 					<< inst->GetLB(agent_number) << "\t"
+					<< corr->vertices << "\t"
 					<< mks << "\t"
 					<< total_solvertime << "\t"
 					<< total_runtime << endl;
