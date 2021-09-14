@@ -12,7 +12,7 @@ int AspSolver::Solve(int agent_number, int mks)
 	PrintInstance(agent_number, mks);
 
 	stringstream exec;
-	exec << "INSTANCE=\"" << work_dir << "/instance.lp\" timeout " << (int)timeout + 1 << " " << work_dir << "/scripts/plan.sh > " << work_dir << "/output_asp";
+	exec << "MAPFOPTS=\"-q --stat\" INSTANCE=\"" << work_dir << "/instance.lp\" timeout " << (int)timeout + 1 << " " << work_dir << "/scripts/plan.sh > " << work_dir << "/output_asp";
 
 	system(exec.str().c_str());
 
@@ -92,6 +92,57 @@ int AspSolver::ReadResults(int agent_number, int mks)
 				solver_time = stof(parsed_line[12]);
 				total_time = stof(parsed_line[10]);
 			}
+
+			if (line.rfind("Choices", 0) == 0)
+			{
+				stringstream ssline(line);
+				string part;
+				vector<string> parsed_line;
+				while (getline(ssline, part, ' '))
+					parsed_line.push_back(part);
+
+				choices_vc.push_back(stoi(parsed_line[7]));
+				cout << parsed_line[7] << endl;
+			}
+
+			if (line.rfind("Conflicts", 0) == 0)
+			{
+				cout << line << endl;
+				stringstream ssline(line);
+				string part;
+				vector<string> parsed_line;
+				while (getline(ssline, part, ' '))
+					parsed_line.push_back(part);
+
+				conflicts_vc.push_back(stoi(parsed_line[5]));
+				cout << parsed_line[5] << endl;
+			}
+
+			if (line.rfind("Variables", 0) == 0)
+			{
+				cout << line << endl;
+				stringstream ssline(line);
+				string part;
+				vector<string> parsed_line;
+				while (getline(ssline, part, ' '))
+					parsed_line.push_back(part);
+
+				variables_vc.push_back(stoi(parsed_line[5]));
+				cout << parsed_line[5] << endl;
+			}
+
+			if (line.rfind("Constraints", 0) == 0)
+			{
+				cout << line << endl;
+				stringstream ssline(line);
+				string part;
+				vector<string> parsed_line;
+				while (getline(ssline, part, ' '))
+					parsed_line.push_back(part);
+
+				constraints_vc.push_back(stoi(parsed_line[3]));
+				cout << parsed_line[3] << endl;
+			}
 		}
 
 		input.close();
@@ -116,7 +167,11 @@ int AspSolver::ReadResults(int agent_number, int mks)
 				<< mks << "\t"
 				<< solver_time << "\t"
 				<< total_time << "\t"
-				<< res << endl;
+				<< res << "\t"
+				<< choices_vc.back() << "\t"
+				<< conflicts_vc.back() << "\t"
+				<< variables_vc.back() << "\t"
+				<< constraints_vc.back() << endl;
 
 			output.close();
 		}
@@ -140,7 +195,27 @@ int AspSolver::ReadResults(int agent_number, int mks)
 					<< corr->vertices << "\t"
 					<< mks << "\t"
 					<< total_solvertime << "\t"
-					<< total_runtime << endl;
+					<< total_runtime << "\t"
+					// choices - sum, mean, g_mean, std
+					<< accumulate(choices_vc.begin(), choices_vc.end(), 0) << "\t"
+					<< accumulate(choices_vc.begin(), choices_vc.end(), 0.0) / choices_vc.size() << "\t"
+					<< GeometricMean(choices_vc) << "\t"
+					<< StDev(choices_vc) << "\t"
+					// conflicts - sum, mean, g_mean, std
+					<< accumulate(conflicts_vc.begin(), conflicts_vc.end(), 0) << "\t"
+					<< accumulate(conflicts_vc.begin(), conflicts_vc.end(), 0.0) / conflicts_vc.size() << "\t"
+					<< GeometricMean(conflicts_vc) << "\t"
+					<< StDev(conflicts_vc) << "\t"
+					// variables - sum, mean, g_mean, std
+					<< accumulate(variables_vc.begin(), variables_vc.end(), 0) << "\t"
+					<< accumulate(variables_vc.begin(), variables_vc.end(), 0.0) / variables_vc.size() << "\t"
+					<< GeometricMean(variables_vc) << "\t"
+					<< StDev(variables_vc) << "\t"
+					// constraints - sum, mean, g_mean, std
+					<< accumulate(constraints_vc.begin(), constraints_vc.end(), 0) << "\t"
+					<< accumulate(constraints_vc.begin(), constraints_vc.end(), 0.0) / constraints_vc.size() << "\t"
+					<< GeometricMean(constraints_vc) << "\t"
+					<< StDev(constraints_vc) << endl;
 
 				output.close();
 			}
@@ -159,4 +234,28 @@ int AspSolver::ReadResults(int agent_number, int mks)
 		cout << "Could not open solution file!" << endl;
 	
 	return 1;
+}
+
+
+
+double AspSolver::GeometricMean(std::vector<int>& vc)
+{
+	double product = 1;
+
+	for (int i = 0; i < vc.size(); i++)
+		product = product * vc[i];
+
+	double gm = pow(product, (double)1 / vc.size());
+	return gm;
+}
+
+double AspSolver::StDev(std::vector<int>& vc)
+{
+	double sum = std::accumulate(vc.begin(), vc.end(), 0.0);
+	double mean = sum / vc.size();
+
+	double sq_sum = std::inner_product(vc.begin(), vc.end(), vc.begin(), 0.0);
+	double stdev = std::sqrt(sq_sum / vc.size() - mean * mean);
+
+	return stdev;
 }

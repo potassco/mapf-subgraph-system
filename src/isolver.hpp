@@ -18,6 +18,11 @@ public:
 		timeout = to;
 		total_runtime = 0;
 		total_solvertime = 0;
+
+		choices_vc.clear();
+		conflicts_vc.clear();
+		variables_vc.clear();
+		constraints_vc.clear();
 	}
 
 	std::string name;
@@ -34,5 +39,10 @@ protected:
 	float timeout;
 	float total_runtime;
 	float total_solvertime;
+
+	std::vector<int> choices_vc;
+	std::vector<int> conflicts_vc;
+	std::vector<int> variables_vc;
+	std::vector<int> constraints_vc;
 };
 

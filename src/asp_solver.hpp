@@ -1,5 +1,8 @@
 #pragma once
 
+#include <numeric>
+#include <math.h>
+
 #include "isolver.hpp"
 
 class AspSolver : public ISolver
@@ -11,5 +14,6 @@ public:
 	int ReadResults(int, int);
 
 private:
-
+	double GeometricMean(std::vector<int>&);
+	double StDev(std::vector<int>&);
 };
