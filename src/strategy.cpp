@@ -38,13 +38,13 @@ Strategy::Strategy(char c, string af, string bs, int to, string wd, string sd, s
 
 	if (bs.compare("sat") == 0)
 	{
-		sol = new SatSolver(alg, inst, corr, wd.append("/SAT_model"), sd, GetFilename(af));
+		sol = new SatSolver(alg, inst, corr, wd.append("/sat"), sd, GetFilename(af));
 		sol->name = "sat";
 	}
 
 	if (bs.compare("asp") == 0)
 	{
-		sol = new AspSolver(alg, inst, corr, wd.append("/ASP_model"), sd, GetFilename(af));
+		sol = new AspSolver(alg, inst, corr, wd.append("/asp"), sd, GetFilename(af));
 		sol->name = "asp";
 	}
 }
