@@ -20,8 +20,8 @@ int main(int argc, char** argv)
 	int timeout = 300;
 	string work_dir = "models";
 	string statistic_dir = "statistics";
-	string input_dir = "resources/instances";
-	string map_dir = "resources/maps";
+	string input_dir = "resources/instances/scenarios";
+	string map_dir = "resources/instances/maps";
 
 	// parse arguments
 	opterr = 0;
