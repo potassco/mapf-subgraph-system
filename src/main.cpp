@@ -22,7 +22,8 @@ int main(int argc, char** argv)
 	int timeout = 300;
         fs::path parent_path = fs::path(__FILE__).parent_path().parent_path();
 	string work_dir = parent_path / "encodings";
-	string statistic_dir = parent_path / "statistics";
+	string statistics_dir = fs::current_path() / "statistics";
+        fs::create_directory(statistics_dir);
 	string input_dir = parent_path / "resources/instances/scenarios";
 	string map_dir = parent_path / "resources/instances/maps";
 
@@ -87,7 +88,7 @@ int main(int argc, char** argv)
 	Strategy* strat;
 
 	if (svalue[0] == 'b' || svalue[0] == 'm' || svalue[0] == 'p' || svalue[0] == 'c')
-		strat = new Strategy(svalue[0], ivalue, bvalue, timeout, work_dir, statistic_dir, input_dir, map_dir);
+		strat = new Strategy(svalue[0], ivalue, bvalue, timeout, work_dir, statistics_dir, input_dir, map_dir);
 	else
 	{
 		cout << "Unknown strategy!" << endl;
