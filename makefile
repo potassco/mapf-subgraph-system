@@ -7,11 +7,11 @@ _DEPS = strategy.hpp instance.hpp corridor_maker.hpp sat_solver.hpp asp_solver.h
 DEPS = $(patsubst %,$(S_DIR)/%,$(_DEPS))
 
 _OBJ = main.o strategy.o instance.o corridor_maker.o sat_solver.o asp_solver.o
-OBJ = $(patsubst %,$(S_DIR)/%,$(_OBJ))
+OBJ = $(patsubst %,$(abspath $(S_DIR))/%,$(_OBJ))
 
 corridor_framework: $(OBJ)
 	mkdir -p build/bin
-	$(CC) $(CFLAGS) -o $(B_DIR)/$@ $^
+	$(CC) $(CFLAGS) -o $(B_DIR)/$@ $^ -lstdc++fs
 
 %.o: %.c $(DEPS)
 	$(CC) $(CFLAGS) -c -o $@ $<

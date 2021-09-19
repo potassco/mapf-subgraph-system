@@ -2,10 +2,12 @@
 #include <string>
 #include <stdlib.h>
 #include <unistd.h>
+#include <experimental/filesystem>
 
 #include "strategy.hpp"
 
 using namespace std;
+namespace fs = std::experimental::filesystem;
 
 void printHelp(char**);
 
@@ -18,10 +20,11 @@ int main(int argc, char** argv)
 	char *tvalue = NULL;
 
 	int timeout = 300;
-	string work_dir = "encodings";
-	string statistic_dir = "statistics";
-	string input_dir = "resources/instances/scenarios";
-	string map_dir = "resources/instances/maps";
+        fs::path parent_path = fs::path(__FILE__).parent_path().parent_path();
+	string work_dir = parent_path / "encodings";
+	string statistic_dir = parent_path / "statistics";
+	string input_dir = parent_path / "resources/instances/scenarios";
+	string map_dir = parent_path / "resources/instances/maps";
 
 	// parse arguments
 	opterr = 0;
