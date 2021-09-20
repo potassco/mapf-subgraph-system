@@ -22,7 +22,7 @@ clean:
 	rm -f encodings/sat/instance.pi encodings/sat/output_sat
 
 test: corridor_framework
-	$(B_DIR)/corridor_framework -i resources/instances/empty-32-32-condensed-0.scen -s p -b asp -t 1
+	$(B_DIR)/corridor_framework -i resources/instances/scenarios/empty-128-128-condensed-0.scen -s p -b asp-teg -t 10
 
 experiment: corridor_framework
 	sh experiment.sh

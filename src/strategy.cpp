@@ -47,6 +47,12 @@ Strategy::Strategy(char c, string af, string bs, int to, string wd, string sd, s
 		sol = new AspSolver(alg, inst, corr, wd.append("/asp"), sd, GetFilename(af));
 		sol->name = "asp";
 	}
+
+	if (bs.compare("asp-teg") == 0)
+	{
+		sol = new AspSolver(alg, inst, corr, wd.append("/asp"), sd, GetFilename(af));
+		sol->name = "asp-teg";
+	}
 }
 
 Strategy::~Strategy()

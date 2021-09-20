@@ -41,6 +41,70 @@ void AspSolver::PrintInstance(int agent_number, int mks)
 		asp << endl;
 
 		asp << "makespan(" << mks << ")." << endl;
+
+		if (name.compare("asp-teg") == 0)
+		{
+			corr->MakeTEG_XY(agent_number, mks);
+			for (size_t x = 0; x < corr->time_expanded_graph_xy.size(); x++)
+			{
+				for (size_t y = 0; y < corr->time_expanded_graph_xy[x].size(); y++)
+				{
+					for (size_t a = 0; a < corr->time_expanded_graph_xy[x][y].size(); a++)
+					{
+						/*for (size_t t = 1; t < corr->time_expanded_graph_xy[x][y][a].size(); t++)
+						{
+							string agent_loc = string("poss_loc(" + to_string(a + 1) + ",(" + to_string(x + 1) + "," + to_string(y + 1) + "),");
+							asp << agent_loc << corr->time_expanded_graph_xy[x][y][a][t] + 1 << "). ";
+						}*/
+
+						if (corr->time_expanded_graph_xy[x][y][a].size() == 0)
+							continue;
+
+						sort(corr->time_expanded_graph_xy[x][y][a].begin(), corr->time_expanded_graph_xy[x][y][a].end());
+
+						bool single = true;
+						bool print = false;
+						int last = corr->time_expanded_graph_xy[x][y][a][0];
+						string agent_loc = string("poss_loc(" + to_string(a + 1) + ",(" + to_string(x + 1) + "," + to_string(y + 1) + "),");
+
+						asp << agent_loc << corr->time_expanded_graph_xy[x][y][a][0] + 1;
+
+						for (size_t t = 1; t < corr->time_expanded_graph_xy[x][y][a].size(); t++)
+						{
+							if (print)
+								asp << agent_loc << corr->time_expanded_graph_xy[x][y][a][t] + 1;
+
+							if (corr->time_expanded_graph_xy[x][y][a][t] == last + 1)
+							{
+								single = false;
+								print = false;
+								last = corr->time_expanded_graph_xy[x][y][a][t];
+								if (t == corr->time_expanded_graph_xy[x][y][a].size() - 1)
+									asp << ".." << last + 1 << "). ";
+								continue;
+							}
+							
+							if (single)
+							{
+								asp << "). ";
+								print = true;
+							}
+							else
+							{
+								asp << ".." << last + 1 << "). ";
+								single = true;
+								print = true;
+							}
+							last = corr->time_expanded_graph_xy[x][y][a][t];
+						}
+
+						if (corr->time_expanded_graph_xy[x][y][a].size() == 1)
+							asp << "). ";
+					}
+				}
+			}
+			asp << endl;
+		}
 	}
 	else
 	{

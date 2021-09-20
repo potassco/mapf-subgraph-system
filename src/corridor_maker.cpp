@@ -98,6 +98,7 @@ int CorridorMaker::GiveNewNumbering()
 	return vertices;
 }
 
+// time, agent, vertex
 void CorridorMaker::MakeTEG(int agents, int mks)
 {
 	time_expanded_graph = vector<vector<vector<int> > >(mks, vector<vector<int> >(agents));
@@ -108,6 +109,19 @@ void CorridorMaker::MakeTEG(int agents, int mks)
 				for (size_t y = 0; y < computed_map[x].size(); y++)
 					if (computed_map[x][y] != -1 && inst->length_from_start[a][inst->map[x][y]] <= t && inst->length_from_goal[a][inst->map[x][y]] <= mks - t)
 						time_expanded_graph[t][a].push_back(computed_map[x][y]);
+}
+
+// vertex_x, vertex_y, agent, time
+void CorridorMaker::MakeTEG_XY(int agents, int mks)
+{
+	time_expanded_graph_xy = vector<vector<vector<vector<int> > > >(computed_map.size(), vector<vector<vector<int> > >(computed_map[0].size(), vector<vector<int> >(agents)));
+
+	for (size_t x = 0; x < computed_map.size(); x++)
+		for (size_t y = 0; y < computed_map[x].size(); y++)
+			for (size_t a = 0; a < time_expanded_graph_xy[x][y].size(); a++)
+				for (size_t t = 0; t < mks; t++)
+					if (computed_map[x][y] != -1 && inst->length_from_start[a][inst->map[x][y]] <= t && inst->length_from_goal[a][inst->map[x][y]] <= mks - t)
+						time_expanded_graph_xy[x][y][a].push_back(t);
 }
 
 bool CorridorMaker::IsReachable(int x, int y, int agents, int mks)
