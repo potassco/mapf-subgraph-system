@@ -2,10 +2,12 @@
 #include <string>
 #include <stdlib.h>
 #include <unistd.h>
+#include <experimental/filesystem>
 
 #include "strategy.hpp"
 
 using namespace std;
+namespace fs = std::experimental::filesystem;
 
 void printHelp(char**);
 
@@ -18,10 +20,12 @@ int main(int argc, char** argv)
 	char *tvalue = NULL;
 
 	int timeout = 300;
-	string work_dir = "models";
-	string statistic_dir = "statistics";
-	string input_dir = "resources/instances";
-	string map_dir = "resources/maps";
+        fs::path parent_path = fs::path(__FILE__).parent_path().parent_path();
+	string work_dir = parent_path / "encodings";
+	string statistics_dir = fs::current_path() / "statistics";
+        fs::create_directory(statistics_dir);
+	string input_dir = parent_path / "resources/instances/scenarios";
+	string map_dir = parent_path / "resources/instances/maps";
 
 	// parse arguments
 	opterr = 0;
@@ -84,7 +88,7 @@ int main(int argc, char** argv)
 	Strategy* strat;
 
 	if (svalue[0] == 'b' || svalue[0] == 'm' || svalue[0] == 'p' || svalue[0] == 'c')
-		strat = new Strategy(svalue[0], ivalue, bvalue, timeout, work_dir, statistic_dir, input_dir, map_dir);
+		strat = new Strategy(svalue[0], ivalue, bvalue, timeout, work_dir, statistics_dir, input_dir, map_dir);
 	else
 	{
 		cout << "Unknown strategy!" << endl;

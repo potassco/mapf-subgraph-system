@@ -2,13 +2,13 @@
 
 timeout=100
 
-for instance in resources/instances/*
+for instance in resources/instances/scenarios/*
 do
 	for strategy in b m p c
 	do
 		for solver in asp sat
 		do
-			./models/corridor_framework -i $instance -s $strategy -b $solver -t $timeout
+			./build/bin/corridor_framework -i $instance -s $strategy -b $solver -t $timeout
 		done
 	done
 done
