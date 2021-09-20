@@ -9,7 +9,7 @@ Strategy::Strategy(char c, string af, string bs, int to, string wd, string sd, s
 
 	timeout = to;
 
-	B,M,P,C = false;
+	B = false, M = false, P = false, C = false;
 	switch (c)
 	{
 		case 'b':
@@ -87,7 +87,7 @@ int Strategy::RunTests()
 		if (result == 0) // ok result -> add new agents
 		{
 			bonus_makespan = 0;
-			number_of_agents_to_compute += 5;
+			number_of_agents_to_compute += 10;
 			p_expand = 1;
 			sol->ResetStat(timeout);
 			LB = inst->GetLB(number_of_agents_to_compute);
