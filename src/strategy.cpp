@@ -2,7 +2,7 @@
 
 using namespace std;
 
-Strategy::Strategy(char c, string af, string bs, int to, string wd, string sd, string id, string md)
+Strategy::Strategy(char c, string af, string bs, int to, string wd, string sd, string id, string md, string rd)
 {
 	inst = new Instance(md, id, GetFilename(af));
 	corr = new CorridorMaker(inst);
@@ -38,19 +38,19 @@ Strategy::Strategy(char c, string af, string bs, int to, string wd, string sd, s
 
 	if (bs.compare("sat") == 0)
 	{
-		sol = new SatSolver(alg, inst, corr, wd.append("/sat"), sd, GetFilename(af));
+		sol = new SatSolver(alg, inst, corr, wd.append("/sat"), sd, GetFilename(af), rd);
 		sol->name = "sat";
 	}
 
 	if (bs.compare("asp") == 0)
 	{
-		sol = new AspSolver(alg, inst, corr, wd.append("/asp"), sd, GetFilename(af));
+		sol = new AspSolver(alg, inst, corr, wd.append("/asp"), sd, GetFilename(af), rd);
 		sol->name = "asp";
 	}
 
 	if (bs.compare("asp-teg") == 0)
 	{
-		sol = new AspSolver(alg, inst, corr, wd.append("/asp"), sd, GetFilename(af));
+		sol = new AspSolver(alg, inst, corr, wd.append("/asp"), sd, GetFilename(af), rd);
 		sol->name = "asp-teg";
 	}
 }

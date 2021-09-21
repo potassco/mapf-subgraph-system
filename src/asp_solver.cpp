@@ -7,12 +7,15 @@ int AspSolver::Solve(int agent_number, int mks)
 	if (timeout < 0)
 		return 1;
 
+	io_file_name.clear();
+	io_file_name.append(inst->agents_file).append("_").append(alg).append("_").append(name);
+
 	corr->GiveNewNumbering();
 
 	PrintInstance(agent_number, mks);
 
 	stringstream exec;
-	exec << "MAPFOPTS=\"-q --stat\" INSTANCE=\"" << work_dir << "/instance.lp\" timeout " << (int)timeout + 1 << " " << work_dir << "/scripts/plan.sh > " << work_dir << "/output_asp";
+	exec << "MAPFOPTS=\"-q --stat\" INSTANCE=\"" << run_dir << "/" << io_file_name << ".lp\" timeout " << (int)timeout + 1 << " " << work_dir << "/scripts/plan.sh > " << run_dir << "/" << io_file_name << ".out";
 
 	system(exec.str().c_str());
 
@@ -22,8 +25,8 @@ int AspSolver::Solve(int agent_number, int mks)
 void AspSolver::PrintInstance(int agent_number, int mks)
 {
 	ofstream asp;
-	string ofile = work_dir;
-	asp.open(ofile.append("/instance.lp"));
+	string ofile = run_dir;
+	asp.open(ofile.append("/" + io_file_name + ".lp"));
 	if (asp.is_open())
 	{
 		for (size_t i = 0; i < corr->computed_map.size(); i++)
@@ -120,8 +123,8 @@ void AspSolver::PrintInstance(int agent_number, int mks)
 int AspSolver::ReadResults(int agent_number, int mks)
 {
 	string line;
-	string ifile = work_dir;
-	ifstream input(ifile.append("/output_asp"));
+	string ifile = run_dir;
+	ifstream input(ifile.append("/" + io_file_name + ".out"));
 	if (input.is_open())
 	{
 		float solver_time = 0;
@@ -213,7 +216,7 @@ int AspSolver::ReadResults(int agent_number, int mks)
 
 		ofstream output;
 		string ofile = stat_dir;
-		output.open(ofile.append("/").append(inst->agents_file).append("_").append(alg).append("_").append(name).append(".log"), ios::app);
+		output.open(ofile.append("/" + io_file_name + ".log"), ios::app);
 		if (output.is_open())
 		{
 			string res;
@@ -249,7 +252,7 @@ int AspSolver::ReadResults(int agent_number, int mks)
 		if (solution_found)
 		{
 			ofile = stat_dir;
-			output.open(ofile.append("/").append(inst->agents_file).append("_").append(alg).append("_").append(name).append(".res"), ios::app);
+			output.open(ofile.append("/" + io_file_name + ".res"), ios::app);
 			if (output.is_open())
 			{
 				output << inst->agents_file << "\t"

@@ -8,7 +8,7 @@
 class ISolver
 {
 public:
-	ISolver(std::string a, Instance* i, CorridorMaker* c, std::string wd, std::string sd, std::string af) : alg(a), inst(i), corr(c), work_dir(wd), stat_dir(sd), agent_file(af) {}; 
+	ISolver(std::string a, Instance* i, CorridorMaker* c, std::string wd, std::string sd, std::string af, std::string rd) : alg(a), inst(i), corr(c), work_dir(wd), stat_dir(sd), agent_file(af), run_dir(rd) {}; 
 	virtual int Solve(int, int) = 0;
 	virtual void PrintInstance(int, int) = 0;
 	virtual int ReadResults(int, int) = 0;
@@ -35,6 +35,9 @@ protected:
 	std::string work_dir;
 	std::string stat_dir;
 	std::string agent_file;
+	std::string run_dir;
+
+	std::string io_file_name;
 
 	float timeout;
 	float total_runtime;

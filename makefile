@@ -18,11 +18,9 @@ corridor_framework: $(OBJ)
 
 clean:
 	rm -f $(S_DIR)/*.o $(B_DIR)/corridor_framework
-	rm -f encodings/asp/instance.lp encodings/asp/output_asp
-	rm -f encodings/sat/instance.pi encodings/sat/output_sat
 
 test: corridor_framework
-	$(B_DIR)/corridor_framework -i resources/instances/scenarios/empty-128-128-condensed-4.scen -s p -b sat -t 300
+	$(B_DIR)/corridor_framework -i resources/instances/scenarios/empty-32-32-condensed-0.scen -s p -b asp -t 1
 
 experiment: corridor_framework
 	sh experiment.sh

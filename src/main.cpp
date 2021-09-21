@@ -26,6 +26,8 @@ int main(int argc, char** argv)
         fs::create_directory(statistics_dir);
 	string input_dir = parent_path / "resources/instances/scenarios";
 	string map_dir = parent_path / "resources/instances/maps";
+	string run_dir = parent_path / "build/run";
+		fs::create_directory(run_dir);
 
 	// parse arguments
 	opterr = 0;
@@ -88,7 +90,7 @@ int main(int argc, char** argv)
 	Strategy* strat;
 
 	if (svalue[0] == 'b' || svalue[0] == 'm' || svalue[0] == 'p' || svalue[0] == 'c')
-		strat = new Strategy(svalue[0], ivalue, bvalue, timeout, work_dir, statistics_dir, input_dir, map_dir);
+		strat = new Strategy(svalue[0], ivalue, bvalue, timeout, work_dir, statistics_dir, input_dir, map_dir, run_dir);
 	else
 	{
 		cout << "Unknown strategy!" << endl;

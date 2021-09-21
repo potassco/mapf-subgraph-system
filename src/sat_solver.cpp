@@ -9,13 +9,16 @@ int SatSolver::Solve(int agent_number, int mks)
 
 	mks = mks + 1; // different numbering of makespan -- number of states rather than number of actions
 
+	io_file_name.clear();
+	io_file_name.append(inst->agents_file + "_" + alg + "_" + name);
+
 	corr->GiveNewNumbering();
 	corr->MakeTEG(agent_number, mks);
 
 	PrintInstance(agent_number, mks);
 
 	stringstream exec;
-	exec << "timeout " << (int)timeout + 1 << " " << work_dir << "/picat " << work_dir << "/mks_al.pi " << work_dir << "/instance.pi" << " > " << work_dir << "/output_sat";
+	exec << "timeout " << (int)timeout + 1 << " " << work_dir << "/picat " << work_dir << "/mks_al.pi " << run_dir << "/" << io_file_name << ".pi" << " > " << run_dir << "/" << io_file_name << ".out";
 
 	system(exec.str().c_str());
 
@@ -25,8 +28,8 @@ int SatSolver::Solve(int agent_number, int mks)
 void SatSolver::PrintInstance(int agent_number, int mks)
 {
 	ofstream picat;
-	string ofile = work_dir;
-	picat.open(ofile.append("/instance.pi"));
+	string ofile = run_dir;
+	picat.open(ofile.append("/" + io_file_name + ".pi"));
 	if (picat.is_open())
 	{
 		picat << "ins(Graph, As, B) =>" << " ";
@@ -129,8 +132,8 @@ int SatSolver::ReadResults(int agent_number, int mks)
 	mks = mks - 1; //change numbering back to stay consistent with ASP solver
 
 	string line;
-	string ifile = work_dir;
-	ifstream input(ifile.append("/output_sat"));
+	string ifile = run_dir;
+	ifstream input(ifile.append("/" + io_file_name + ".out"));
 	if (input.is_open())
 	{
 		float solver_time = 0;
@@ -176,7 +179,7 @@ int SatSolver::ReadResults(int agent_number, int mks)
 
 		ofstream output;
 		string ofile = stat_dir;
-		output.open(ofile.append("/").append(inst->agents_file).append("_").append(alg).append("_").append(name).append(".log"), ios::app);
+		output.open(ofile.append("/" + io_file_name + ".log"), ios::app);
 		if (output.is_open())
 		{
 			string res;
@@ -208,7 +211,7 @@ int SatSolver::ReadResults(int agent_number, int mks)
 		if (solution_found)
 		{
 			ofile = stat_dir;
-			output.open(ofile.append("/").append(inst->agents_file).append("_").append(alg).append("_").append(name).append(".res"), ios::app);
+			output.open(ofile.append("/" + io_file_name + ".res"), ios::app);
 			if (output.is_open())
 			{
 				output << inst->agents_file << "\t"
