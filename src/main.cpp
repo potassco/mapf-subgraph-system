@@ -26,7 +26,7 @@ int main(int argc, char** argv)
         fs::create_directory(statistics_dir);
 	string input_dir = parent_path / "resources/instances/scenarios";
 	string map_dir = parent_path / "resources/instances/maps";
-	string run_dir = parent_path / "build/run";
+	string run_dir = fs::current_path() / "run";
 		fs::create_directory(run_dir);
 
 	// parse arguments

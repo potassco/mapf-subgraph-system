@@ -7,8 +7,14 @@ int AspSolver::Solve(int agent_number, int mks)
 	if (timeout < 0)
 		return 1;
 
+	solver_call++;
+
 	io_file_name.clear();
-	io_file_name.append(inst->agents_file).append("_").append(alg).append("_").append(name);
+	io_file_name.append(inst->agents_file + "_" + alg + "_" + name + "_" + to_string(agent_number) + "_" + to_string(solver_call));
+
+	stat_file_name.clear();
+	stat_file_name.append(inst->agents_file + "_" + alg + "_" + name);
+
 
 	corr->GiveNewNumbering();
 
@@ -216,7 +222,7 @@ int AspSolver::ReadResults(int agent_number, int mks)
 
 		ofstream output;
 		string ofile = stat_dir;
-		output.open(ofile.append("/" + io_file_name + ".log"), ios::app);
+		output.open(ofile.append("/" + stat_file_name + ".log"), ios::app);
 		if (output.is_open())
 		{
 			string res;
@@ -252,7 +258,7 @@ int AspSolver::ReadResults(int agent_number, int mks)
 		if (solution_found)
 		{
 			ofile = stat_dir;
-			output.open(ofile.append("/" + io_file_name + ".res"), ios::app);
+			output.open(ofile.append("/" + stat_file_name + ".res"), ios::app);
 			if (output.is_open())
 			{
 				output << inst->agents_file << "\t"

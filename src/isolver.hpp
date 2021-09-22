@@ -19,6 +19,8 @@ public:
 		total_runtime = 0;
 		total_solvertime = 0;
 
+		solver_call = 0;
+
 		choices_vc.clear();
 		conflicts_vc.clear();
 		variables_vc.clear();
@@ -38,10 +40,13 @@ protected:
 	std::string run_dir;
 
 	std::string io_file_name;
+	std::string stat_file_name;
 
 	float timeout;
 	float total_runtime;
 	float total_solvertime;
+
+	int solver_call;
 
 	std::vector<int> choices_vc;
 	std::vector<int> conflicts_vc;
