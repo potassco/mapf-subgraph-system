@@ -10,7 +10,10 @@ int AspSolver::Solve(int agent_number, int mks)
 	solver_call++;
 
 	io_file_name.clear();
-	io_file_name.append(inst->agents_file + "_" + alg + "_" + name + "_" + to_string(agent_number) + "_" + to_string(solver_call));
+	if (debug)
+		io_file_name.append(inst->agents_file + "_" + alg + "_" + name + "_" + to_string(agent_number) + "_" + to_string(solver_call));
+	else
+		io_file_name.append(inst->agents_file + "_" + alg + "_" + name);
 
 	stat_file_name.clear();
 	stat_file_name.append(inst->agents_file + "_" + alg + "_" + name);
@@ -60,7 +63,7 @@ void AspSolver::PrintInstance(int agent_number, int mks)
 				{
 					for (size_t a = 0; a < corr->time_expanded_graph_xy[x][y].size(); a++)
 					{
-						/*for (size_t t = 1; t < corr->time_expanded_graph_xy[x][y][a].size(); t++)
+						/*for (size_t t = 0; t < corr->time_expanded_graph_xy[x][y][a].size(); t++)
 						{
 							string agent_loc = string("poss_loc(" + to_string(a + 1) + ",(" + to_string(x + 1) + "," + to_string(y + 1) + "),");
 							asp << agent_loc << corr->time_expanded_graph_xy[x][y][a][t] + 1 << "). ";

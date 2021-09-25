@@ -14,6 +14,7 @@ void printHelp(char**);
 int main(int argc, char** argv) 
 {
 	bool hflag = false;
+	bool dflag = false;
 	char *svalue = NULL;
 	char *ivalue = NULL;
 	char *bvalue = NULL;
@@ -32,12 +33,15 @@ int main(int argc, char** argv)
 	// parse arguments
 	opterr = 0;
 	char c;
-	while ((c = getopt (argc, argv, "hi:s:b:t:")) != -1)
+	while ((c = getopt (argc, argv, "hdi:s:b:t:")) != -1)
 	{
 		switch (c)
 		{
 			case 'h':
 				hflag = true;
+				break;
+			case 'd':
+				dflag = true;
 				break;
 			case 'i':
 				ivalue = optarg;
@@ -90,7 +94,7 @@ int main(int argc, char** argv)
 	Strategy* strat;
 
 	if (svalue[0] == 'b' || svalue[0] == 'm' || svalue[0] == 'p' || svalue[0] == 'c')
-		strat = new Strategy(svalue[0], ivalue, bvalue, timeout, work_dir, statistics_dir, input_dir, map_dir, run_dir);
+		strat = new Strategy(dflag, svalue[0], ivalue, bvalue, timeout, work_dir, statistics_dir, input_dir, map_dir, run_dir);
 	else
 	{
 		cout << "Unknown strategy!" << endl;
@@ -108,8 +112,9 @@ int main(int argc, char** argv)
 void printHelp(char* argv[])
 {
 	cout << "Usage of this generator:" << endl;
-	cout << argv[0] << " [-h] -b base_algorithm -i agents_file -s strategy [-t timeout]" << endl;
+	cout << argv[0] << " [-h] [-d] -b base_algorithm -i agents_file -s strategy [-t timeout]" << endl;
 	cout << "	-h                  : prints help and exits" << endl;
+	cout << "	-d                  : debug print - keep all of the used instance and output files" << endl;
 	cout << "	-b base_algorithm   : base algorithm to be used. Available options are sat|asp|asp-teg" << endl;
 	cout << "	-i agents_file      : path to an agents file" << endl;
 	cout << "	-s strategy         : strategy to be used. Available options are b|m|p|c" << endl;

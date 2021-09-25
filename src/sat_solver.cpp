@@ -12,7 +12,10 @@ int SatSolver::Solve(int agent_number, int mks)
 	solver_call++;
 
 	io_file_name.clear();
-	io_file_name.append(inst->agents_file + "_" + alg + "_" + name + "_" + to_string(agent_number) + "_" + to_string(solver_call));
+	if (debug)
+		io_file_name.append(inst->agents_file + "_" + alg + "_" + name + "_" + to_string(agent_number) + "_" + to_string(solver_call));
+	else
+		io_file_name.append(inst->agents_file + "_" + alg + "_" + name);
 
 	stat_file_name.clear();
 	stat_file_name.append(inst->agents_file + "_" + alg + "_" + name);
