@@ -66,7 +66,7 @@ void AspSolver::PrintInstance(int agent_number, int mks)
 						/*for (size_t t = 0; t < corr->time_expanded_graph_xy[x][y][a].size(); t++)
 						{
 							string agent_loc = string("poss_loc(" + to_string(a + 1) + ",(" + to_string(x + 1) + "," + to_string(y + 1) + "),");
-							asp << agent_loc << corr->time_expanded_graph_xy[x][y][a][t] + 1 << "). ";
+							asp << agent_loc << corr->time_expanded_graph_xy[x][y][a][t] << "). ";
 						}*/
 
 						if (corr->time_expanded_graph_xy[x][y][a].size() == 0)
@@ -79,12 +79,12 @@ void AspSolver::PrintInstance(int agent_number, int mks)
 						int last = corr->time_expanded_graph_xy[x][y][a][0];
 						string agent_loc = string("poss_loc(" + to_string(a + 1) + ",(" + to_string(x + 1) + "," + to_string(y + 1) + "),");
 
-						asp << agent_loc << corr->time_expanded_graph_xy[x][y][a][0] + 1;
+						asp << agent_loc << corr->time_expanded_graph_xy[x][y][a][0];
 
 						for (size_t t = 1; t < corr->time_expanded_graph_xy[x][y][a].size(); t++)
 						{
 							if (print)
-								asp << agent_loc << corr->time_expanded_graph_xy[x][y][a][t] + 1;
+								asp << agent_loc << corr->time_expanded_graph_xy[x][y][a][t];
 
 							if (corr->time_expanded_graph_xy[x][y][a][t] == last + 1)
 							{
@@ -92,7 +92,7 @@ void AspSolver::PrintInstance(int agent_number, int mks)
 								print = false;
 								last = corr->time_expanded_graph_xy[x][y][a][t];
 								if (t == corr->time_expanded_graph_xy[x][y][a].size() - 1)
-									asp << ".." << last + 1 << "). ";
+									asp << ".." << last << "). ";
 								continue;
 							}
 							
@@ -103,7 +103,7 @@ void AspSolver::PrintInstance(int agent_number, int mks)
 							}
 							else
 							{
-								asp << ".." << last + 1 << "). ";
+								asp << ".." << last << "). ";
 								single = true;
 								print = true;
 							}

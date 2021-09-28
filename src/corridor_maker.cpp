@@ -119,7 +119,7 @@ void CorridorMaker::MakeTEG_XY(int agents, int mks)
 	for (size_t x = 0; x < computed_map.size(); x++)
 		for (size_t y = 0; y < computed_map[x].size(); y++)
 			for (size_t a = 0; a < time_expanded_graph_xy[x][y].size(); a++)
-				for (size_t t = 0; t < mks; t++)
+				for (size_t t = 0; t <= mks; t++)
 					if (computed_map[x][y] != -1 && inst->length_from_start[a][inst->map[x][y]] <= t && inst->length_from_goal[a][inst->map[x][y]] <= mks - t)
 						time_expanded_graph_xy[x][y][a].push_back(t);
 }
