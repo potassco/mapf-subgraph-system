@@ -1,19 +1,19 @@
 # On Reduction-based Solving of Large-scale Multi-agent Pathfinding Instances Using Subgraphs
+
 This is a supplementary material for paper #29 titled "On Reduction-based Solving of Large-scale Multi-agent Pathfinding Instances Using Subgraphs" submitted to AAMAS 2022.
 
 ## Contents
 
-- encodings - Contains the encodings for both ASP-based solver and SAT-based solver.
-- resources - Contains the scenario and map files used in the paper.
-- src - Contains the source codes in C++ for the strategy framework.
-- statistics - Contains the measured results used in the paper.
-- experiment.sh - A script that solves all of the included instances using all of the possible combinations of strategies and underlying solvers.
-- makefile - A makefile provided for easy compilation and experiment execution.
-
+- `./encodings\{asp,sat}` contains the encodings for both ASP-based solver and SAT-based solver.
+- `./resources\instances` contains the scenario and map files used in the paper.
+- `./src` contains the source codes in C++ for the strategy framework.
+- `./statistics` contains the measured results used in the paper.
+- `./experiment.sh` a script that solves all of the included instances using all of the possible combinations of strategies and underlying solvers.
+- `./makefile` a makefile provided for easy compilation and experiment execution.
 
 ## Requirements
 
-The system is intended to run under Unix. To build the system `make` is used. The framework is written in C++ compiled by `g++` compatible with standard c++11. The SAT encoding requires `Picat` binary which is included. The ASP encoding requires `Clingo`. For more details on the ASP encoding see the [readme]() in encodings/asp.
+The system is intended to run in a POSIX terminal with GNU bash. To build the system `make` is used. The framework is written in C++ compiled by `g++` compatible with standard c++11. The SAT encoding requires `Picat` binary which is included. The ASP encoding requires `clingo`. For more details on the ASP encoding see the [readme](encodings/asp/README.md).
 
 ## Usage
 
@@ -31,4 +31,3 @@ To solve a single instance call the built binary:
 ```
 
 To solve all of the included scenario files call `make experiment`. The result files are stored in the statistics folder.
-
