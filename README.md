@@ -4,10 +4,10 @@ This is a supplementary material for paper #29 titled "On Reduction-based Solvin
 
 ## Contents
 
-- `./encodings\{asp,sat}` contains the encodings for both ASP-based solver and SAT-based solver.
-- `./resources\instances` contains the scenario and map files used in the paper.
+- `./encodings/{asp,sat}` contains the encodings for both ASP-based solver and SAT-based solver.
+- `./resources/instances` contains the scenario and map files used in the paper.
 - `./src` contains the source codes in C++ for the strategy framework.
-- `./statistics` contains the measured results used in the paper.
+- `./statistics/results.xlsx` contains the measured results used in the paper.
 - `./experiment.sh` a script that solves all of the included instances using all of the possible combinations of strategies and underlying solvers.
 - `./makefile` a makefile provided for easy compilation and experiment execution.
 
