@@ -11,6 +11,8 @@ This is a supplementary material for paper #29 titled "On Reduction-based Solvin
 - `./experiment.sh` a script that solves all of the included instances using all of the possible combinations of strategies and underlying solvers.
 - `./makefile` a makefile provided for easy compilation and experiment execution.
 
+We do not include the CBS algorithm as it is not our implementation. A modified CBS implemetnation was kindly provided by Dor Atzmon from Ben Gurion University as a binary file. [[1]](#1)
+
 ## Requirements
 
 The system is intended to run in a POSIX terminal with GNU bash. To build the system `make` is used. The framework is written in C++ compiled by `g++` compatible with standard c++11. The SAT encoding requires `Picat` binary which is included. The ASP encoding requires `clingo`. For more details on the ASP encoding see the [readme](encodings/asp/README.md).
@@ -31,3 +33,6 @@ To solve a single instance call the built binary:
 ```
 
 To solve all of the included scenario files call `make experiment`. The result files are stored in the statistics folder.
+
+## References
+<a id="1">[1]</a> Dor Atzmon, Roni Stern, Ariel Felner, Glenn Wagner, Roman Barták, and Neng-FaZhou. 2018.  Robust Multi-Agent Path Finding. InProceedings of the EleventhInternational Symposium on Combinatorial Search, SOCS 2018,
