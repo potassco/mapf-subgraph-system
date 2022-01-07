@@ -1,10 +1,10 @@
-# On Reduction-based Solving of Large-scale Multi-agent Pathfinding Instances Using Subgraphs
+# Reduction-Based Solving of Large-scale Multi-Agent Pathfinding With Graph Pruning
 
-This is a supplementary material for paper #29 titled "On Reduction-based Solving of Large-scale Multi-agent Pathfinding Instances Using Subgraphs" submitted to AAMAS 2022.
+This is an implementation of graph pruning strategies for reduction-based solvers comparable to search-based techniques on large maps, supplementary to [[2]](#2).
 
 ## Contents
 
-- `./encodings/{asp,sat}` contains the encodings for both ASP-based solver and SAT-based solver.
+- `./encodings/{asp,sat}` contains the encodings of the ASP-based and SAT-based solver, resp.
 - `./resources/instances` contains the scenario and map files used in the paper.
 - `./src` contains the source codes in C++ for the strategy framework.
 - `./statistics/results.xlsx` contains the measured results used in the paper.
@@ -15,12 +15,32 @@ We do not include the CBS algorithm as it is not our implementation. A modified 
 
 ## Requirements
 
-The system is intended to run in a POSIX terminal with GNU bash. To build the system `make` is used. The framework is written in C++ compiled by `g++` compatible with standard c++11. The SAT encoding requires `Picat` binary which is included. The ASP encoding requires `clingo`. For more details on the ASP encoding see the [readme](encodings/asp/README.md).
+### Framework System
+
+Building the framework system requires
+
+- GNU make
+- `g++` compatible with standard c++11 support
+
+The system is intended to run in a POSIX terminal with GNU [bash](https://www.gnu.org/software/bash/).
+
+### SAT encoding
+
+The SAT encoding requires `Picat` binary which is included.
+
+### ASP encoding
+
+The ASP encoding requires ASP system [clingo](https://potassco.org/clingo/) in version 5.5.0 or higher
+
+## Installation
+
+Clone this repository recursively via `git clone --recursive`.
+
+To build the framework system, run `make` in the root directory of the locally cloned repository.
 
 ## Usage
 
-To build the system call `make`.
-To solve a single instance call the built binary:
+To solve a single instance call the framework via
 
 ``` bash
 ./corridor_framework [-h] -b base_algorithm -i agents_file -s strategy [-t timeout]
@@ -34,5 +54,12 @@ To solve a single instance call the built binary:
 
 To solve all of the included scenario files call `make experiment`. The result files are stored in the statistics folder.
 
+### Standalone Usage of the ASP Encoding
+
+An optional standalone usage of the ASP encoding (independent of the `corridor_framework` binary) is explained [here](encodings/asp/README.md).
+
 ## References
-<a id="1">[1]</a> Dor Atzmon, Roni Stern, Ariel Felner, Glenn Wagner, Roman Barták, and Neng-FaZhou. 2018.  Robust Multi-Agent Path Finding. InProceedings of the EleventhInternational Symposium on Combinatorial Search, SOCS 2018,
+
+<a id="1">[1]</a> Dor Atzmon, Roni Stern, Ariel Felner, Glenn Wagner, Roman Barták, and Neng-FaZhou. 2018.  Robust Multi-Agent Path Finding. In Proceedings of the Eleventh International Symposium on Combinatorial Search, SOCS 2018.
+
+<a id="2">[2]</a> Matej Husár, Jiří Švancara, Philipp Obermeier, Roman Barták, and Torsten Schaub. 2022. Reduction-based Solving of Multi-agent Pathfinding on Large Maps Using Graph Pruning. In Proceedings of the 21th International Conference on Autonomous Agents and MultiAgent Systems, AMAAS 2022.
