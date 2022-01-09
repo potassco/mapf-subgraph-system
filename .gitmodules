@@ -1,6 +1,6 @@
-[submodule "models/ASP_model"]
-	path = encodings/asp
-	url = git@github.com:krr-up/mapf-corridors-asp.git
 [submodule "resources"]
 	path = resources/instances
 	url = git@github.com:krr-up/mapf-corridors-instances.git
+[submodule "encodings/asp/asprilo"]
+	path = encodings/asp/asprilo
+	url = git@github.com:potassco/asprilo-encodings.git
