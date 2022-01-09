@@ -1,6 +1,6 @@
 [submodule "resources"]
 	path = resources/instances
-	url = git@github.com:krr-up/mapf-corridors-instances.git
+	url = ../mapf-subgraph-instances.git
 [submodule "encodings/asp/asprilo"]
 	path = encodings/asp/asprilo
-	url = git@github.com:potassco/asprilo-encodings.git
+	url = ../asprilo-encodings.git
