@@ -19,7 +19,7 @@ int AspSolver::Solve(int agent_number, int mks)
 	stat_file_name.append(inst->agents_file + "_" + alg + "_" + name);
 
 
-	corr->GiveNewNumbering();
+	subg->GiveNewNumbering();
 
 	PrintInstance(agent_number, mks);
 
@@ -38,9 +38,9 @@ void AspSolver::PrintInstance(int agent_number, int mks)
 	asp.open(ofile.append("/" + io_file_name + ".lp"));
 	if (asp.is_open())
 	{
-		for (size_t i = 0; i < corr->computed_map.size(); i++)
-			for (int j = 0; j < corr->computed_map[i].size(); j++)
-				if (corr->computed_map[i][j] != -1)
+		for (size_t i = 0; i < subg->computed_map.size(); i++)
+			for (int j = 0; j < subg->computed_map[i].size(); j++)
+				if (subg->computed_map[i][j] != -1)
 					asp << "node(" << i + 1 << "," << j + 1 << "). ";
 		asp << endl;
 
@@ -56,42 +56,42 @@ void AspSolver::PrintInstance(int agent_number, int mks)
 
 		if (name.compare("asp-teg") == 0)
 		{
-			corr->MakeTEG_XY(agent_number, mks);
-			for (size_t x = 0; x < corr->time_expanded_graph_xy.size(); x++)
+			subg->MakeTEG_XY(agent_number, mks);
+			for (size_t x = 0; x < subg->time_expanded_graph_xy.size(); x++)
 			{
-				for (size_t y = 0; y < corr->time_expanded_graph_xy[x].size(); y++)
+				for (size_t y = 0; y < subg->time_expanded_graph_xy[x].size(); y++)
 				{
-					for (size_t a = 0; a < corr->time_expanded_graph_xy[x][y].size(); a++)
+					for (size_t a = 0; a < subg->time_expanded_graph_xy[x][y].size(); a++)
 					{
-						/*for (size_t t = 0; t < corr->time_expanded_graph_xy[x][y][a].size(); t++)
+						/*for (size_t t = 0; t < subg->time_expanded_graph_xy[x][y][a].size(); t++)
 						{
 							string agent_loc = string("poss_loc(" + to_string(a + 1) + ",(" + to_string(x + 1) + "," + to_string(y + 1) + "),");
-							asp << agent_loc << corr->time_expanded_graph_xy[x][y][a][t] << "). ";
+							asp << agent_loc << subg->time_expanded_graph_xy[x][y][a][t] << "). ";
 						}*/
 
-						if (corr->time_expanded_graph_xy[x][y][a].size() == 0)
+						if (subg->time_expanded_graph_xy[x][y][a].size() == 0)
 							continue;
 
-						sort(corr->time_expanded_graph_xy[x][y][a].begin(), corr->time_expanded_graph_xy[x][y][a].end());
+						sort(subg->time_expanded_graph_xy[x][y][a].begin(), subg->time_expanded_graph_xy[x][y][a].end());
 
 						bool single = true;
 						bool print = false;
-						int last = corr->time_expanded_graph_xy[x][y][a][0];
+						int last = subg->time_expanded_graph_xy[x][y][a][0];
 						string agent_loc = string("poss_loc(" + to_string(a + 1) + ",(" + to_string(x + 1) + "," + to_string(y + 1) + "),");
 
-						asp << agent_loc << corr->time_expanded_graph_xy[x][y][a][0];
+						asp << agent_loc << subg->time_expanded_graph_xy[x][y][a][0];
 
-						for (size_t t = 1; t < corr->time_expanded_graph_xy[x][y][a].size(); t++)
+						for (size_t t = 1; t < subg->time_expanded_graph_xy[x][y][a].size(); t++)
 						{
 							if (print)
-								asp << agent_loc << corr->time_expanded_graph_xy[x][y][a][t];
+								asp << agent_loc << subg->time_expanded_graph_xy[x][y][a][t];
 
-							if (corr->time_expanded_graph_xy[x][y][a][t] == last + 1)
+							if (subg->time_expanded_graph_xy[x][y][a][t] == last + 1)
 							{
 								single = false;
 								print = false;
-								last = corr->time_expanded_graph_xy[x][y][a][t];
-								if (t == corr->time_expanded_graph_xy[x][y][a].size() - 1)
+								last = subg->time_expanded_graph_xy[x][y][a][t];
+								if (t == subg->time_expanded_graph_xy[x][y][a].size() - 1)
 									asp << ".." << last << "). ";
 								continue;
 							}
@@ -107,10 +107,10 @@ void AspSolver::PrintInstance(int agent_number, int mks)
 								single = true;
 								print = true;
 							}
-							last = corr->time_expanded_graph_xy[x][y][a][t];
+							last = subg->time_expanded_graph_xy[x][y][a][t];
 						}
 
-						if (corr->time_expanded_graph_xy[x][y][a].size() == 1)
+						if (subg->time_expanded_graph_xy[x][y][a].size() == 1)
 							asp << "). ";
 					}
 				}
@@ -239,7 +239,7 @@ int AspSolver::ReadResults(int agent_number, int mks)
 
 			output << inst->agents_file << "\t"
 				<< agent_number << "\t"
-				<< corr->vertices << "\t"
+				<< subg->vertices << "\t"
 				<< mks << "\t"
 				<< solver_time << "\t"
 				<< total_time << "\t"
@@ -268,7 +268,7 @@ int AspSolver::ReadResults(int agent_number, int mks)
 					<< agent_number << "\t"
 					<< inst->number_of_vertices << "\t"
 					<< inst->GetLB(agent_number) << "\t"
-					<< corr->vertices << "\t"
+					<< subg->vertices << "\t"
 					<< mks << "\t"
 					<< total_solvertime << "\t"
 					<< total_runtime << "\t"

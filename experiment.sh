@@ -8,7 +8,7 @@ do
 	do
 		for solver in asp asp-teg sat
 		do
-			./build/bin/corridor_framework -i $instance -s $strategy -b $solver -t $timeout
+			./build/bin/subgraph_framework -i $instance -s $strategy -b $solver -t $timeout
 		done
 	done
 done

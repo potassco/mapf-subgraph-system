@@ -1,20 +1,20 @@
-#include "corridor_maker.hpp"
+#include "subgraph_maker.hpp"
 
 using namespace std;
 
-CorridorMaker::CorridorMaker(Instance* i)
+SubgraphMaker::SubgraphMaker(Instance* i)
 {
 	inst = i;
 	has_numbering = false;
 }
 
-void CorridorMaker::ResetComputedMap()
+void SubgraphMaker::ResetComputedMap()
 {
 	computed_map = vector<vector<int> >(inst->height, vector<int>(inst->width, -1));
 	has_numbering = false;
 }
 
-void CorridorMaker::PathsToMap(int agents)
+void SubgraphMaker::PathsToMap(int agents)
 {
 	for (size_t i = 0; i < agents; i++)
 		for (size_t j = 0; j < inst->shortest_paths[i].size(); j++)
@@ -23,10 +23,10 @@ void CorridorMaker::PathsToMap(int agents)
 	has_numbering = false;
 }
 
-bool CorridorMaker::ExpandMap(int corr_width, int agents, int mks)
+bool SubgraphMaker::ExpandMap(int subg_width, int agents, int mks)
 {
 	bool expanded = false;
-	int corridor_distance = 1;
+	int subgraph_distance = 1;
 
 	if (has_numbering)
 	{
@@ -37,7 +37,7 @@ bool CorridorMaker::ExpandMap(int corr_width, int agents, int mks)
 		has_numbering = false;
 	}
 
-	for (int k = 0; k < corr_width; k++)
+	for (int k = 0; k < subg_width; k++)
 	{
 		for (size_t i = 0; i < computed_map.size(); i++)
 		{
@@ -47,39 +47,39 @@ bool CorridorMaker::ExpandMap(int corr_width, int agents, int mks)
 					continue;
 				vertex_reachable = false;
 
-				if (i > 0 && computed_map[i-1][j] != -1 && computed_map[i-1][j] < corridor_distance && IsReachable(i, j, agents, mks))
+				if (i > 0 && computed_map[i-1][j] != -1 && computed_map[i-1][j] < subgraph_distance && IsReachable(i, j, agents, mks))
 				{
-					computed_map[i][j] = corridor_distance;
+					computed_map[i][j] = subgraph_distance;
 					expanded = true;
 					continue;
 				}
-				if (i < inst->height - 1 && computed_map[i+1][j] != -1 && computed_map[i+1][j] < corridor_distance && IsReachable(i, j, agents, mks))
+				if (i < inst->height - 1 && computed_map[i+1][j] != -1 && computed_map[i+1][j] < subgraph_distance && IsReachable(i, j, agents, mks))
 				{
-					computed_map[i][j] = corridor_distance;
+					computed_map[i][j] = subgraph_distance;
 					expanded = true;
 					continue;
 				}
-				if (j > 0 && computed_map[i][j-1] != -1 && computed_map[i][j-1] < corridor_distance && IsReachable(i, j, agents, mks))
+				if (j > 0 && computed_map[i][j-1] != -1 && computed_map[i][j-1] < subgraph_distance && IsReachable(i, j, agents, mks))
 				{
-					computed_map[i][j] = corridor_distance;
+					computed_map[i][j] = subgraph_distance;
 					expanded = true;
 					continue;
 				}
-				if (j < inst->width - 1 && computed_map[i][j+1] != -1 && computed_map[i][j+1] < corridor_distance && IsReachable(i, j, agents, mks))
+				if (j < inst->width - 1 && computed_map[i][j+1] != -1 && computed_map[i][j+1] < subgraph_distance && IsReachable(i, j, agents, mks))
 				{
-					computed_map[i][j] = corridor_distance;
+					computed_map[i][j] = subgraph_distance;
 					expanded = true;
 					continue;
 				}
 			}
 		}
-		corridor_distance++;
+		subgraph_distance++;
 	}
 
 	return expanded;
 }
 
-int CorridorMaker::GiveNewNumbering()
+int SubgraphMaker::GiveNewNumbering()
 {
 	if (!has_numbering)
 	{
@@ -99,7 +99,7 @@ int CorridorMaker::GiveNewNumbering()
 }
 
 // time, agent, vertex
-void CorridorMaker::MakeTEG(int agents, int mks)
+void SubgraphMaker::MakeTEG(int agents, int mks)
 {
 	time_expanded_graph = vector<vector<vector<int> > >(mks, vector<vector<int> >(agents));
 
@@ -112,7 +112,7 @@ void CorridorMaker::MakeTEG(int agents, int mks)
 }
 
 // vertex_x, vertex_y, agent, time
-void CorridorMaker::MakeTEG_XY(int agents, int mks)
+void SubgraphMaker::MakeTEG_XY(int agents, int mks)
 {
 	time_expanded_graph_xy = vector<vector<vector<vector<int> > > >(computed_map.size(), vector<vector<vector<int> > >(computed_map[0].size(), vector<vector<int> >(agents)));
 
@@ -124,7 +124,7 @@ void CorridorMaker::MakeTEG_XY(int agents, int mks)
 						time_expanded_graph_xy[x][y][a].push_back(t);
 }
 
-bool CorridorMaker::IsReachable(int x, int y, int agents, int mks)
+bool SubgraphMaker::IsReachable(int x, int y, int agents, int mks)
 {
 	if (vertex_reachable)
 		return true;;

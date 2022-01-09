@@ -43,7 +43,7 @@ To build the framework system, run `make` in the root directory of the locally c
 To solve a single instance call the framework via
 
 ``` bash
-./corridor_framework [-h] -b base_algorithm -i agents_file -s strategy [-t timeout]
+./subgraph_framework [-h] -b base_algorithm -i agents_file -s strategy [-t timeout]
         -h                  : prints help and exits
         -d                  : debug print - keep all of the used instance and output files
         -b base_algorithm   : base algorithm to be used. Available options are sat|asp|asp-teg
@@ -56,7 +56,7 @@ To solve all of the included scenario files call `make experiment`. The result f
 
 ### Standalone Usage of the ASP Encoding
 
-An optional standalone usage of the ASP encoding (independent of the `corridor_framework` binary) is explained [here](encodings/asp/README.md).
+An optional standalone usage of the ASP encoding (independent of the `subgraph_framework` binary) is explained [here](encodings/asp/README.md).
 
 ## References
 

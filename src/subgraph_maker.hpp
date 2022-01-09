@@ -2,10 +2,10 @@
 
 #include "instance.hpp"
 
-class CorridorMaker
+class SubgraphMaker
 {
 public:
-	CorridorMaker(Instance*);
+	SubgraphMaker(Instance*);
 
 	void ResetComputedMap();
 	void PathsToMap(int);
