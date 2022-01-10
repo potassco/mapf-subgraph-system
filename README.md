@@ -1,6 +1,6 @@
 # Reduction-Based Solving of Large-scale Multi-Agent Pathfinding With Graph Pruning
 
-This is an implementation of graph pruning strategies for reduction-based solvers comparable to search-based techniques on large maps, supplementary to [[2]](#2).
+This is an implementation of graph pruning strategies for reduction-based solvers comparable to search-based techniques on large maps, supplementary to [[2]](#2). Specifically, for the former, our framework uses the SAT-compiler [Picat](http://picat-lang.org/) as well as the ASP-solver [clingo](https://potassco.org/clingo/), and the latter is represented by an implementation of CBS [[1]](#1).
 
 ## Contents
 
@@ -10,8 +10,6 @@ This is an implementation of graph pruning strategies for reduction-based solver
 - `./statistics/results.xlsx` contains the measured results used in the paper.
 - `./experiment.sh` a script that solves all of the included instances using all of the possible combinations of strategies and underlying solvers.
 - `./makefile` a makefile provided for easy compilation and experiment execution.
-
-We do not include the CBS algorithm as it is not our implementation. A modified CBS implemetnation was kindly provided by Dor Atzmon from Ben Gurion University as a binary file. [[1]](#1)
 
 ## Requirements
 
@@ -26,21 +24,26 @@ The system is intended to run in a POSIX terminal with GNU [bash](https://www.gn
 
 ### SAT encoding
 
-The SAT encoding requires `Picat` binary which is included.
+The SAT encoding requires [Picat](http://picat-lang.org/) binary which is included.
 
 ### ASP encoding
 
 The ASP encoding requires ASP system [clingo](https://potassco.org/clingo/) in version 5.5.0 or higher
 
+### CBS
+
+We do *not* include the CBS algorithm as it is not our implementation. A modified CBS implementation was kindly provided by Dor Atzmon from Ben Gurion University as a binary file [[1]](#1).
+
+
 ## Installation
 
 Clone this repository recursively via `git clone --recursive`.
 
-To build the framework system, run `make` in the root directory of the locally cloned repository.
+To build the framework system, run `make` in the root directory of your locally cloned repository.
 
 ## Usage
 
-To solve a single instance call the framework via
+To solve a single instance, call the framework via
 
 ``` bash
 ./subgraph_framework [-h] -b base_algorithm -i agents_file -s strategy [-t timeout]
@@ -52,7 +55,7 @@ To solve a single instance call the framework via
         -t timeout          : timeout of the computation. Default value is 300s
 ```
 
-To solve all of the included scenario files call `make experiment`. The result files are stored in the statistics folder.
+To solve all of the included scenario files, call `make experiment`. The result files are stored in the `./statistics` folder.
 
 ### Standalone Usage of the ASP Encoding
 
