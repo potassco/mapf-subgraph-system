@@ -3,13 +3,13 @@ CFLAGS = -std=c++11 -O3
 S_DIR = src
 B_DIR = build/bin
 
-_DEPS = strategy.hpp instance.hpp corridor_maker.hpp sat_solver.hpp asp_solver.hpp isolver.hpp
+_DEPS = strategy.hpp instance.hpp subgraph_maker.hpp sat_solver.hpp asp_solver.hpp isolver.hpp
 DEPS = $(patsubst %,$(S_DIR)/%,$(_DEPS))
 
-_OBJ = main.o strategy.o instance.o corridor_maker.o sat_solver.o asp_solver.o
+_OBJ = main.o strategy.o instance.o subgraph_maker.o sat_solver.o asp_solver.o
 OBJ = $(patsubst %,$(abspath $(S_DIR))/%,$(_OBJ))
 
-corridor_framework: $(OBJ)
+subgraph_framework: $(OBJ)
 	mkdir -p build/bin
 	$(CC) $(CFLAGS) -o $(B_DIR)/$@ $^ -lstdc++fs
 
@@ -17,10 +17,10 @@ corridor_framework: $(OBJ)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f $(S_DIR)/*.o $(B_DIR)/corridor_framework
+	rm -f $(S_DIR)/*.o $(B_DIR)/subgraph_framework
 
-test: corridor_framework
-	$(B_DIR)/corridor_framework -i resources/instances/scenarios/empty-32-32-condensed-0.scen -s p -b asp -t 1
+test: subgraph_framework
+	$(B_DIR)/subgraph_framework -i resources/instances/scenarios/empty-32-32-condensed-0.scen -s p -b asp -t 1
 
-experiment: corridor_framework
+experiment: subgraph_framework
 	sh experiment.sh

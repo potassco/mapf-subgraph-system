@@ -5,7 +5,7 @@ using namespace std;
 Strategy::Strategy(bool debug, char c, string af, string bs, int to, string wd, string sd, string id, string md, string rd)
 {
 	inst = new Instance(md, id, GetFilename(af));
-	corr = new CorridorMaker(inst);
+	subg = new SubgraphMaker(inst);
 
 	timeout = to;
 
@@ -38,19 +38,19 @@ Strategy::Strategy(bool debug, char c, string af, string bs, int to, string wd, 
 
 	if (bs.compare("sat") == 0)
 	{
-		sol = new SatSolver(debug, alg, inst, corr, wd.append("/sat"), sd, GetFilename(af), rd);
+		sol = new SatSolver(debug, alg, inst, subg, wd.append("/sat"), sd, GetFilename(af), rd);
 		sol->name = "sat";
 	}
 
 	if (bs.compare("asp") == 0)
 	{
-		sol = new AspSolver(debug, alg, inst, corr, wd.append("/asp"), sd, GetFilename(af), rd);
+		sol = new AspSolver(debug, alg, inst, subg, wd.append("/asp"), sd, GetFilename(af), rd);
 		sol->name = "asp";
 	}
 
 	if (bs.compare("asp-teg") == 0)
 	{
-		sol = new AspSolver(debug, alg, inst, corr, wd.append("/asp"), sd, GetFilename(af), rd);
+		sol = new AspSolver(debug, alg, inst, subg, wd.append("/asp"), sd, GetFilename(af), rd);
 		sol->name = "asp-teg";
 	}
 }
@@ -59,7 +59,7 @@ Strategy::~Strategy()
 {
 	delete inst;
 	delete sol;
-	delete corr;
+	delete subg;
 }
 
 string Strategy::GetFilename(string s)
@@ -80,7 +80,7 @@ int Strategy::RunTests()
 	int p_expand = 1;
 
 	if (B)
-		corr->computed_map = inst->map;
+		subg->computed_map = inst->map;
 
 	while (result != 1) // 1 = timeout
 	{ 
@@ -97,14 +97,14 @@ int Strategy::RunTests()
 
 			if (M)
 			{
-				corr->ResetComputedMap();
-				corr->PathsToMap(number_of_agents_to_compute);
-				corr->ExpandMap(1, number_of_agents_to_compute, LB + bonus_makespan);
+				subg->ResetComputedMap();
+				subg->PathsToMap(number_of_agents_to_compute);
+				subg->ExpandMap(1, number_of_agents_to_compute, LB + bonus_makespan);
 			}
 			if (P || C)
 			{
-				corr->ResetComputedMap();
-				corr->PathsToMap(number_of_agents_to_compute);
+				subg->ResetComputedMap();
+				subg->PathsToMap(number_of_agents_to_compute);
 			}
 		}
 
@@ -114,21 +114,21 @@ int Strategy::RunTests()
 				bonus_makespan++;
 			if (P)
 			{
-				bool res = corr->ExpandMap(p_expand, number_of_agents_to_compute, LB + bonus_makespan);
+				bool res = subg->ExpandMap(p_expand, number_of_agents_to_compute, LB + bonus_makespan);
 				p_expand = p_expand * 2;
 
 				if (!res) //if not expanded then add makespan and make max pruning
 				{
 					bonus_makespan++;
-					corr->ResetComputedMap();
-					corr->PathsToMap(number_of_agents_to_compute);
+					subg->ResetComputedMap();
+					subg->PathsToMap(number_of_agents_to_compute);
 					p_expand = 1;
 				}
 			}
 			if (C)
 			{
 				bonus_makespan++;
-				corr->ExpandMap(1, number_of_agents_to_compute, LB + bonus_makespan);
+				subg->ExpandMap(1, number_of_agents_to_compute, LB + bonus_makespan);
 			}
 		}
 
@@ -142,7 +142,7 @@ int Strategy::RunTests()
 		cout << "Makespan lower bound: " << LB << endl;
 		cout << "Current makespan used: " << LB + bonus_makespan << endl << endl;
 
-		inst->DebugPrint(corr->computed_map);
+		inst->DebugPrint(subg->computed_map);
 
 		/* END DEBUG */
 

@@ -6,7 +6,7 @@
 #include "instance.hpp"
 #include "sat_solver.hpp"
 #include "asp_solver.hpp"
-#include "corridor_maker.hpp"
+#include "subgraph_maker.hpp"
 
 class Strategy
 {
@@ -21,7 +21,7 @@ private:
 
 	Instance* inst;
 	ISolver* sol;
-	CorridorMaker* corr;
+	SubgraphMaker* subg;
 
 	std::string alg;
 	bool B,M,P,C;
