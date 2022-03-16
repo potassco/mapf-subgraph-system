@@ -1,6 +1,6 @@
-# Reduction-Based Solving of Large-scale Multi-Agent Pathfinding With Graph Pruning
+# Multi-agent Pathfinding on Large Maps Using Graph Pruning: This Way or That Way?
 
-This is an implementation of graph pruning strategies for reduction-based solvers comparable to search-based techniques on large maps, supplementary to [[2]](#2). Specifically, for the former, our framework uses the SAT-compiler [Picat](http://picat-lang.org/) as well as the ASP-solver [clingo](https://potassco.org/clingo/), and the latter is represented by an implementation of CBS [[1]](#1).
+This is an implementation of graph pruning strategies and shortest paths choices for reduction-based solvers usable on large maps. Specifically, our framework uses the ASP-solver [clingo](https://potassco.org/clingo/).
 
 ## Contents
 
@@ -30,11 +30,6 @@ The SAT encoding requires [Picat](http://picat-lang.org/) binary which is includ
 
 The ASP encoding requires ASP system [clingo](https://potassco.org/clingo/) in version 5.5.0 or higher
 
-### CBS
-
-We do *not* include the CBS algorithm as it is not our implementation. A modified CBS implementation was kindly provided by Dor Atzmon from Ben Gurion University as a binary file [[1]](#1).
-
-
 ## Installation
 
 Clone this repository recursively via `git clone --recursive`.
@@ -46,13 +41,14 @@ To build the framework system, run `make` in the root directory of your locally 
 To solve a single instance, call the framework via
 
 ``` bash
-./subgraph_framework [-h] -b base_algorithm -i agents_file -s strategy [-t timeout]
-        -h                  : prints help and exits
-        -d                  : debug print - keep all of the used instance and output files
-        -b base_algorithm   : base algorithm to be used. Available options are sat|asp|asp-teg
-        -i agents_file      : path to an agents file
-        -s strategy         : strategy to be used. Available options are b|m|p|c
-        -t timeout          : timeout of the computation. Default value is 300s
+./subgraph_framework  [-h] [-d] -b base_algorithm -i agents_file -s strategy [-t timeout] [-p shortest_path]
+	-h                  : prints help and exits
+	-d                  : debug print - keep all of the used instance and output files
+	-b base_algorithm   : base algorithm to be used. Available options are sat|asp|asp-teg
+	-i agents_file      : path to an agents file
+	-s strategy         : strategy to be used. Available options are b|m|p|c
+	-t timeout          : timeout of the computation. Default value is 300s
+	-p shortest_path    : what shortest path to use to create the pruned graph. Available options are single|all|random|diverse. Default is single.
 ```
 
 To solve all of the included scenario files, call `make experiment`. The result files are stored in the `./statistics` folder.
@@ -63,6 +59,3 @@ An optional standalone usage of the ASP encoding (independent of the `subgraph_f
 
 ## References
 
-<a id="1">[1]</a> Dor Atzmon, Roni Stern, Ariel Felner, Glenn Wagner, Roman Barták, and Neng-FaZhou. 2018.  Robust Multi-Agent Path Finding. In Proceedings of the Eleventh International Symposium on Combinatorial Search, SOCS 2018.
-
-<a id="2">[2]</a> Matej Husár, Jiří Švancara, Philipp Obermeier, Roman Barták, and Torsten Schaub. 2022. Reduction-based Solving of Multi-agent Pathfinding on Large Maps Using Graph Pruning. In Proceedings of the 21th International Conference on Autonomous Agents and MultiAgent Systems, AMAAS 2022.
