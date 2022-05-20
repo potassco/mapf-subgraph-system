@@ -4,11 +4,11 @@
 
 using namespace std;
 
-Instance::Instance(string map_dir, string agents_dir, string a_f)
+Instance::Instance(string map_dir, string agents_dir, string a_f, string path)
 {
 	agents_file = a_f;
 	LoadAgents(agents_dir.append("/").append(agents_file), map_dir);
-	ComputeShortestPaths();
+	ComputeShortestPaths(path);
 }
 
 void Instance::LoadAgents(string agents_path, string map_dir)
@@ -91,7 +91,7 @@ void Instance::LoadMap(string map_path)
 	in.close();
 }
 
-void Instance::ComputeShortestPaths()
+void Instance::ComputeShortestPaths(string path_type)
 {
 	length_from_start = vector<vector<int> >(agents.size(), vector<int>(number_of_vertices, -1));
 	length_from_goal = vector<vector<int> >(agents.size(), vector<int>(number_of_vertices, -1));
@@ -101,10 +101,11 @@ void Instance::ComputeShortestPaths()
 		BFS(length_from_start[i], agents[i].start);
 		BFS(length_from_goal[i], agents[i].goal);
 
-		Vertex curr_vertex = agents[i].goal;
 		int curr_timestep = length_from_start[i][map[agents[i].goal.x][agents[i].goal.y]];
 		SP_lengths.push_back(curr_timestep);
 
+		// default = single (will be used as the first path in all other approaches)
+		Vertex curr_vertex = agents[i].goal;
 		while (length_from_start[i][map[curr_vertex.x][curr_vertex.y]] != 0)
 		{
 			shortest_paths[i].push_back(curr_vertex);
@@ -122,7 +123,145 @@ void Instance::ComputeShortestPaths()
 		}
 		shortest_paths[i].push_back(curr_vertex);
 
-		reverse(shortest_paths[i].begin(), shortest_paths[i].end());
+		if (path_type.compare("all") == 0)
+		{
+			VerticesOnShortestPaths(length_from_start[i], length_from_goal[i], shortest_paths[i], SP_lengths[i]);
+		}
+		else if (path_type.compare("random") == 0)
+		{
+			cout << "bef" << endl;
+			int k = GetNumberOfPaths(length_from_start[i], length_from_goal[i], SP_lengths[i]);
+			cout << "aft " << k << endl;
+
+			for (int j = 1; j < k; j++)
+			{
+				curr_vertex = agents[i].goal;
+				while (length_from_start[i][map[curr_vertex.x][curr_vertex.y]] != 0)
+				{
+					int x = curr_vertex.x;
+					int y = curr_vertex.y;
+
+					vector<Vertex> candidates;
+					vector<Vertex> not_visited_candidates;
+
+					if (x > 0 && map[x-1][y] != -1 && length_from_start[i][map[x - 1][y]] + 1 == length_from_start[i][map[x][y]])
+						candidates.push_back({x - 1, y});
+					if (x < height - 1 && map[x+1][y] != -1 && length_from_start[i][map[x + 1][y]] + 1 == length_from_start[i][map[x][y]])
+						candidates.push_back({x + 1, y});
+					if (y > 0 && map[x][y-1] != -1 && length_from_start[i][map[x][y - 1]] + 1 == length_from_start[i][map[x][y]])
+						candidates.push_back({x, y - 1});
+					if (y < width - 1 && map[x][y+1] != -1 && length_from_start[i][map[x][y + 1]] + 1 == length_from_start[i][map[x][y]])
+						candidates.push_back({x, y + 1});
+
+					for (size_t l = 0; l < candidates.size(); l++)
+					{
+						Vertex v = candidates[l];
+						if (find(shortest_paths[i].begin(), shortest_paths[i].end(), v) == shortest_paths[i].end())
+						{
+							not_visited_candidates.push_back(v);
+						}
+					}
+
+					if (not_visited_candidates.size() > 0 && rand()%100 > 30)
+						curr_vertex = not_visited_candidates[rand() % not_visited_candidates.size()];
+					else
+						curr_vertex = candidates[rand() % candidates.size()];
+					shortest_paths[i].push_back(curr_vertex);
+				}
+			}
+		}
+		else if (path_type.compare("diverse") == 0)
+		{
+			int k = GetNumberOfPaths(length_from_start[i], length_from_goal[i], SP_lengths[i]);
+			for (int j = 1; j < k; j++)
+			{
+				// get good initial candidate
+				vector<Vertex> starting_candidates;
+				VerticesOnShortestPaths(length_from_start[i], length_from_goal[i], starting_candidates, SP_lengths[i]);
+
+				int max = -1;
+				Vertex starting_vertex;
+
+				for (size_t l = 0; l < starting_candidates.size(); l++)
+				{
+					int curr_sum = MinOfDistances(starting_candidates[l], shortest_paths[i]);
+					if (curr_sum > max)
+					{
+						starting_vertex = starting_candidates[l];
+						max = curr_sum;
+					}
+				}
+				vector<Vertex> to_add;
+
+				// perform path search from candidate to start
+				curr_vertex = starting_vertex;
+				while (length_from_start[i][map[curr_vertex.x][curr_vertex.y]] != 0)
+				{
+					to_add.push_back(curr_vertex);
+
+					int x = curr_vertex.x;
+					int y = curr_vertex.y;
+
+					vector<Vertex> candidates;
+
+					if (x > 0 && map[x-1][y] != -1 && length_from_start[i][map[x - 1][y]] + 1 == length_from_start[i][map[x][y]])
+						candidates.push_back({x - 1, y});
+					if (x < height - 1 && map[x+1][y] != -1 && length_from_start[i][map[x + 1][y]] + 1 == length_from_start[i][map[x][y]])
+						candidates.push_back({x + 1, y});
+					if (y > 0 && map[x][y-1] != -1 && length_from_start[i][map[x][y - 1]] + 1 == length_from_start[i][map[x][y]])
+						candidates.push_back({x, y - 1});
+					if (y < width - 1 && map[x][y+1] != -1 && length_from_start[i][map[x][y + 1]] + 1 == length_from_start[i][map[x][y]])
+						candidates.push_back({x, y + 1});
+
+					max = -1;
+					for (size_t l = 0; l < candidates.size(); l++)
+					{
+						int curr_val = MinOfDistances(candidates[l], shortest_paths[i]);
+						if (curr_val > max)
+						{
+							max = curr_val;
+							curr_vertex = candidates[l];
+						}
+					}
+				}
+
+				// perform path search from candidate to goal
+
+				curr_vertex = starting_vertex;
+				while (length_from_goal[i][map[curr_vertex.x][curr_vertex.y]] != 0)
+				{
+					to_add.push_back(curr_vertex);
+
+					int x = curr_vertex.x;
+					int y = curr_vertex.y;
+
+					vector<Vertex> candidates;
+
+					if (x > 0 && map[x-1][y] != -1 && length_from_goal[i][map[x - 1][y]] + 1 == length_from_goal[i][map[x][y]])
+						candidates.push_back({x - 1, y});
+					if (x < height - 1 && map[x+1][y] != -1 && length_from_goal[i][map[x + 1][y]] + 1 == length_from_goal[i][map[x][y]])
+						candidates.push_back({x + 1, y});
+					if (y > 0 && map[x][y-1] != -1 && length_from_goal[i][map[x][y - 1]] + 1 == length_from_goal[i][map[x][y]])
+						candidates.push_back({x, y - 1});
+					if (y < width - 1 && map[x][y+1] != -1 && length_from_goal[i][map[x][y + 1]] + 1 == length_from_goal[i][map[x][y]])
+						candidates.push_back({x, y + 1});
+
+					max = -1;
+					for (size_t l = 0; l < candidates.size(); l++)
+					{
+						int curr_val = MinOfDistances(candidates[l], shortest_paths[i]);
+						if (curr_val > max)
+						{
+							max = curr_val;
+							curr_vertex = candidates[l];
+						}
+					}
+				}
+
+				for (size_t l = 0; l < to_add.size(); l++)
+					shortest_paths[i].push_back(to_add[l]);
+			}
+		}
 	}
 } 
 
@@ -167,6 +306,51 @@ int Instance::GetLB(int ags)
 	for (size_t i = 0; i < ags; i++)
 		LB = max(LB, SP_lengths[i]);
 	return LB;
+}
+
+int Instance::GetNumberOfPaths(vector<int>& length_from_start, vector<int>& length_from_goal, int path_length)
+{
+	//return 3;
+
+	vector<Vertex> vc;
+	VerticesOnShortestPaths(length_from_start, length_from_goal, vc, path_length);
+
+	return (path_length == 0) ? 0 : vc.size()/path_length;
+}
+
+int Instance::ManhattanDistance(Vertex& v, Vertex& u)
+{
+	return abs(v.x - u.x) + abs(v.y - u.y);
+}
+
+int Instance::SumOfDistances(Vertex& v, vector<Vertex>& vc)
+{
+	int sum = 0;
+	for (size_t i = 0; i < vc.size(); i++)
+		sum += ManhattanDistance(v,vc[i]);
+	return sum;
+}
+
+int Instance::MinOfDistances(Vertex& v, vector<Vertex>& vc)
+{
+	int minn = INT32_MAX;
+	for (size_t i = 0; i < vc.size(); i++)
+		minn = min(ManhattanDistance(v,vc[i]), minn);
+	return minn;
+}
+
+void Instance::VerticesOnShortestPaths(vector<int>& length_from_start, vector<int>& length_from_goal, vector<Vertex>& vc, int path_length)
+{
+	for (int x = 0; x < map.size(); x++)
+	{
+		for (int y = 0; y < map[x].size(); y++)
+		{
+			if (map[x][y] == -1)
+				continue;
+			if (length_from_start[map[x][y]] + length_from_goal[map[x][y]] <= path_length)
+			vc.push_back({x,y});
+		}
+	}
 }
 
 /* DEBUG */

@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 
-Copyright (c) 2021 Matej Husár, Jiří Švancara, Philipp Obermeier
+Copyright (c) 2022, Jiří Švancara, Philipp Obermeier, Matej Husár
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in

@@ -2,9 +2,9 @@
 
 using namespace std;
 
-Strategy::Strategy(bool debug, char c, string af, string bs, int to, string wd, string sd, string id, string md, string rd)
+Strategy::Strategy(bool debug, char c, string af, string bs, int to, string wd, string sd, string id, string md, string rd, string path)
 {
-	inst = new Instance(md, id, GetFilename(af));
+	inst = new Instance(md, id, GetFilename(af), path);
 	subg = new SubgraphMaker(inst);
 
 	timeout = to;
@@ -38,19 +38,19 @@ Strategy::Strategy(bool debug, char c, string af, string bs, int to, string wd, 
 
 	if (bs.compare("sat") == 0)
 	{
-		sol = new SatSolver(debug, alg, inst, subg, wd.append("/sat"), sd, GetFilename(af), rd);
+		sol = new SatSolver(debug, alg, inst, subg, wd.append("/sat"), sd, GetFilename(af), rd, path);
 		sol->name = "sat";
 	}
 
 	if (bs.compare("asp") == 0)
 	{
-		sol = new AspSolver(debug, alg, inst, subg, wd.append("/asp"), sd, GetFilename(af), rd);
+		sol = new AspSolver(debug, alg, inst, subg, wd.append("/asp"), sd, GetFilename(af), rd, path);
 		sol->name = "asp";
 	}
 
 	if (bs.compare("asp-teg") == 0)
 	{
-		sol = new AspSolver(debug, alg, inst, subg, wd.append("/asp"), sd, GetFilename(af), rd);
+		sol = new AspSolver(debug, alg, inst, subg, wd.append("/asp"), sd, GetFilename(af), rd, path);
 		sol->name = "asp-teg";
 	}
 }
@@ -87,7 +87,7 @@ int Strategy::RunTests()
 		if (result == 0) // ok result -> add new agents
 		{
 			bonus_makespan = 0;
-			number_of_agents_to_compute += 5;
+			number_of_agents_to_compute += 1;
 			p_expand = 1;
 			sol->ResetStat(timeout);
 			LB = inst->GetLB(number_of_agents_to_compute);

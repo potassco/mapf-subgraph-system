@@ -15,6 +15,13 @@ struct Vertex
 {
 	int x;
 	int y;
+
+	bool operator==(const Vertex &rhs) const
+	{
+		if (rhs.x == x && rhs.y == y)
+			return true;
+		return false;
+    }
 };
 
 struct Agent
@@ -26,7 +33,7 @@ struct Agent
 class Instance
 {
 public:
-	Instance(std::string, std::string, std::string);
+	Instance(std::string, std::string, std::string, std::string);
 	int GetLB(int);
 
 	void DebugPrint(std::vector<std::vector<int> >&);
@@ -49,6 +56,11 @@ public:
 private:
 	void LoadAgents(std::string, std::string);
 	void LoadMap(std::string);
-	void ComputeShortestPaths();
+	void ComputeShortestPaths(std::string);
 	void BFS(std::vector<int>&, Vertex);
+	int GetNumberOfPaths(std::vector<int>&, std::vector<int>&, int);
+	int ManhattanDistance(Vertex&, Vertex&);
+	int SumOfDistances(Vertex&, std::vector<Vertex>&);
+	int MinOfDistances(Vertex&, std::vector<Vertex>&);
+	void VerticesOnShortestPaths(std::vector<int>&, std::vector<int>&, std::vector<Vertex>&, int);
 };
