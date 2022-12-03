@@ -11,7 +11,7 @@
 class Strategy
 {
 public:
-	Strategy(bool, char, std::string, std::string, int, std::string, std::string, std::string, std::string, std::string, std::string);
+	Strategy(bool, bool, bool, char, std::string, std::string, int, std::string, std::string, std::string, std::string, std::string, std::string);
 	~Strategy();
 
 	int RunTests();

@@ -20,7 +20,7 @@ clean:
 	rm -f $(S_DIR)/*.o $(B_DIR)/subgraph_framework
 
 test: subgraph_framework
-	$(B_DIR)/subgraph_framework -i resources/instances/scenarios/0.scen -s p -b asp -t 1 -p all
+	$(B_DIR)/subgraph_framework -i resources/instances/scenarios/random-32-32-20-even-10.scen -s p -b asp -t 1 -P -n -d
 
 experiment: subgraph_framework
 	sh experiment.sh

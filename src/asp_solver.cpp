@@ -26,6 +26,9 @@ int AspSolver::Solve(int agent_number, int mks)
 	stringstream exec;
 	exec << "MAPFOPTS=\"-q --stat\" INSTANCE=\"" << run_dir << "/" << io_file_name << ".lp\" timeout " << (int)timeout + 1 << " " << work_dir << "/scripts/plan.sh > " << run_dir << "/" << io_file_name << ".out";
 
+	if (no_solve) // do not call solver, just assume success
+		return 0;
+
 	system(exec.str().c_str());
 
 	return ReadResults(agent_number, mks);
@@ -116,6 +119,23 @@ void AspSolver::PrintInstance(int agent_number, int mks)
 				}
 			}
 			asp << endl;
+		}
+
+		if (print_path) // print shortest paths for each agent
+		{
+			for (size_t a = 0; a < agent_number; a++)
+			{
+				int size = inst->shortest_paths[a].size() - 1;
+				for (size_t t = 0; t < inst->shortest_paths[a].size() - 1; t++)
+				{
+					asp << "spath(" << a + 1 << ",("
+						<< inst->shortest_paths[a][size - t].x + 1 << "," << inst->shortest_paths[a][size - t].y + 1 << "),("
+						<< inst->shortest_paths[a][size - (t+1)].x + 1 << "," << inst->shortest_paths[a][size - (t+1)].y + 1 << "),"
+						<< t + 1 << "). ";
+				}
+				asp << "spath_length(" << a + 1 << "," << size << ").";
+				asp << endl;
+			}
 		}
 	}
 	else

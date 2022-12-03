@@ -28,6 +28,9 @@ int SatSolver::Solve(int agent_number, int mks)
 	stringstream exec;
 	exec << "timeout " << (int)timeout + 1 << " " << work_dir << "/picat " << work_dir << "/mks_al.pi " << run_dir << "/" << io_file_name << ".pi" << " > " << run_dir << "/" << io_file_name << ".out";
 
+	if (no_solve) // do not call solver, just assume success
+		return 0;
+
 	system(exec.str().c_str());
 
 	return ReadResults(agent_number, mks);

@@ -15,6 +15,8 @@ int main(int argc, char** argv)
 {
 	bool hflag = false;
 	bool dflag = false;
+	bool Pflag = false;
+	bool nflag = false;
 	char *svalue = NULL;
 	char *ivalue = NULL;
 	char *bvalue = NULL;
@@ -36,7 +38,7 @@ int main(int argc, char** argv)
 	// parse arguments
 	opterr = 0;
 	char c;
-	while ((c = getopt (argc, argv, "hdi:s:b:t:p:")) != -1)
+	while ((c = getopt (argc, argv, "hdPni:s:b:t:p:")) != -1)
 	{
 		switch (c)
 		{
@@ -45,6 +47,12 @@ int main(int argc, char** argv)
 				break;
 			case 'd':
 				dflag = true;
+				break;
+			case 'P':
+				Pflag = true;
+				break;
+			case 'n':
+				nflag = true;
 				break;
 			case 'i':
 				ivalue = optarg;
@@ -100,10 +108,16 @@ int main(int argc, char** argv)
 	if (pvalue == NULL)
 		pvalue = "single";
 
+	if (Pflag && string(pvalue).compare("single") != 0)
+	{
+		cout << "-P can be used only with -p single. Ignoring -P" << endl;
+		Pflag = false;
+	}
+
 	Strategy* strat;
 
 	if (svalue[0] == 'b' || svalue[0] == 'm' || svalue[0] == 'p' || svalue[0] == 'c')
-		strat = new Strategy(dflag, svalue[0], ivalue, bvalue, timeout, work_dir, statistics_dir, input_dir, map_dir, run_dir, pvalue);
+		strat = new Strategy(dflag, Pflag, nflag, svalue[0], ivalue, bvalue, timeout, work_dir, statistics_dir, input_dir, map_dir, run_dir, pvalue);
 	else
 	{
 		cout << "Unknown strategy!" << endl;
@@ -124,9 +138,11 @@ void printHelp(char* argv[])
 	cout << argv[0] << " [-h] [-d] -b base_algorithm -i agents_file -s strategy [-t timeout] [-p shortest_path]" << endl;
 	cout << "	-h                  : prints help and exits" << endl;
 	cout << "	-d                  : debug print - keep all of the used instance and output files" << endl;
+	cout << "	-n                  : do not call solver, only print instance in given format" << endl;
 	cout << "	-b base_algorithm   : base algorithm to be used. Available options are sat|asp|asp-teg" << endl;
 	cout << "	-i agents_file      : path to an agents file" << endl;
 	cout << "	-s strategy         : strategy to be used. Available options are b|m|p|c" << endl;
 	cout << "	-t timeout          : timeout of the computation. Default value is 300s" << endl;
 	cout << "	-p shortest_path    : what shortest path to use to create the pruned graph. Available options are single|all|random|diverse. Default is single." << endl;
+	cout << "	-P                  : print the shortest path used to build the pruned graph. Works only with -p single." << endl;
 }

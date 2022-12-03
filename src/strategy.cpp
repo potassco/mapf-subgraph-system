@@ -2,7 +2,7 @@
 
 using namespace std;
 
-Strategy::Strategy(bool debug, char c, string af, string bs, int to, string wd, string sd, string id, string md, string rd, string path)
+Strategy::Strategy(bool debug, bool print_path, bool no_solve, char c, string af, string bs, int to, string wd, string sd, string id, string md, string rd, string path)
 {
 	inst = new Instance(md, id, GetFilename(af), path);
 	subg = new SubgraphMaker(inst);
@@ -38,19 +38,19 @@ Strategy::Strategy(bool debug, char c, string af, string bs, int to, string wd, 
 
 	if (bs.compare("sat") == 0)
 	{
-		sol = new SatSolver(debug, alg, inst, subg, wd.append("/sat"), sd, GetFilename(af), rd, path);
+		sol = new SatSolver(debug, print_path, no_solve, alg, inst, subg, wd.append("/sat"), sd, GetFilename(af), rd, path);
 		sol->name = "sat";
 	}
 
 	if (bs.compare("asp") == 0)
 	{
-		sol = new AspSolver(debug, alg, inst, subg, wd.append("/asp"), sd, GetFilename(af), rd, path);
+		sol = new AspSolver(debug, print_path, no_solve, alg, inst, subg, wd.append("/asp"), sd, GetFilename(af), rd, path);
 		sol->name = "asp";
 	}
 
 	if (bs.compare("asp-teg") == 0)
 	{
-		sol = new AspSolver(debug, alg, inst, subg, wd.append("/asp"), sd, GetFilename(af), rd, path);
+		sol = new AspSolver(debug, print_path, no_solve, alg, inst, subg, wd.append("/asp"), sd, GetFilename(af), rd, path);
 		sol->name = "asp-teg";
 	}
 }
