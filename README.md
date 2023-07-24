@@ -4,7 +4,7 @@ This is an implementation of graph pruning strategies and shortest paths choices
 
 ## Contents
 
-- `./encodings/{asp,sat}` contains the encodings of the ASP-based and SAT-based solver, resp.
+- `./encodings` contains the encodings of the ASP-based solver.
 - `./resources/instances` contains the scenario and map files used in the paper.
 - `./src` contains the source codes in C++ for the strategy framework.
 - `./statistics/results.xlsx` contains the measured results used in the paper.
@@ -21,10 +21,6 @@ Building the framework system requires
 - `g++` compatible with standard c++11 support
 
 The system is intended to run in a POSIX terminal with GNU [bash](https://www.gnu.org/software/bash/).
-
-### SAT encoding
-
-The SAT encoding requires [Picat](http://picat-lang.org/) binary which is included.
 
 ### ASP encoding
 
@@ -44,18 +40,16 @@ To solve a single instance, call the framework via
 ./subgraph_framework  [-h] [-d] -b base_algorithm -i agents_file -s strategy [-t timeout] [-p shortest_path]
 	-h                  : prints help and exits
 	-d                  : debug print - keep all of the used instance and output files
-	-b base_algorithm   : base algorithm to be used. Available options are sat|asp|asp-teg
+	-n                  : do not call solver, only print instance in given format
+	-b base_algorithm   : base algorithm to be used. Available options are asp-mks|asp-soc
 	-i agents_file      : path to an agents file
 	-s strategy         : strategy to be used. Available options are b|m|p|c
 	-t timeout          : timeout of the computation. Default value is 300s
 	-p shortest_path    : what shortest path to use to create the pruned graph. Available options are single|all|random|diverse. Default is single.
+	-P                  : print the shortest path used to build the pruned graph. Works only with -p single.
 ```
 
 To solve all of the included scenario files, call `make experiment`. The result files are stored in the `./statistics` folder.
-
-### Standalone Usage of the ASP Encoding
-
-An optional standalone usage of the ASP encoding (independent of the `subgraph_framework` binary) is explained [here](encodings/asp/README.md).
 
 ## References
 
