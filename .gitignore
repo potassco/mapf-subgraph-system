@@ -1,7 +1,5 @@
 build
 *.o
-models/corridor_framework
-CBS
 statistics/*res
 statistics/*log
-
+run/*

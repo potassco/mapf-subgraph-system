@@ -1,6 +1,3 @@
 [submodule "resources"]
 	path = resources/instances
 	url = ../mapf-subgraph-instances.git
-[submodule "encodings/asp/asprilo"]
-	path = encodings/asp/encodings/asprilo
-	url = ../asprilo-encodings.git

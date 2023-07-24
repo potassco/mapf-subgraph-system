@@ -128,7 +128,7 @@ void SubgraphMaker::MakeTEG_soc(int agents, int bonus_cost)
 				for (size_t t = 0; t <= inst->SP_lengths[a] + bonus_cost; t++)
 					if (computed_map[x][y] != -1 && inst->length_from_start[a][inst->map[x][y]] <= t && inst->length_from_goal[a][inst->map[x][y]] <= inst->SP_lengths[a] + bonus_cost - t)
 						time_expanded_graph[x][y][a].push_back(t);
-				if (inst->agents[a].start.x == x && inst->agents[a].start.y == y)
+				if (inst->agents[a].goal.x == x && inst->agents[a].goal.y == y)
 					for (size_t t = inst->SP_lengths[a] + bonus_cost + 1; t <= mks; t++)
 						time_expanded_graph[x][y][a].push_back(t);
 			}

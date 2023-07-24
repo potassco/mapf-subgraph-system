@@ -38,13 +38,13 @@ Strategy::Strategy(bool debug, bool print_path, bool no_solve, char c, string af
 
 	if (bs.compare("asp-mks") == 0)
 	{
-		sol = new AspSolver(debug, print_path, no_solve, alg, inst, subg, wd.append("/asp"), sd, GetFilename(af), rd);
+		sol = new AspSolver(debug, print_path, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
 		sol->name = "asp-mks";
 	}
 
 	if (bs.compare("asp-soc") == 0)
 	{
-		sol = new AspSolver(debug, print_path, no_solve, alg, inst, subg, wd.append("/asp"), sd, GetFilename(af), rd);
+		sol = new AspSolver(debug, print_path, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
 		sol->name = "asp-soc";
 		subg->soc = true;
 	}

@@ -23,7 +23,7 @@ int AspSolver::Solve(int agent_number, int bonus_cost)
 	PrintInstance(agent_number, bonus_cost);
 
 	stringstream exec;
-	exec << "MAPFOPTS=\"-q --stat\" INSTANCE=\"" << run_dir << "/" << io_file_name << ".lp\" timeout " << (int)timeout + 1 << " " << work_dir << "/scripts/plan.sh > " << run_dir << "/" << io_file_name << ".out";
+	exec << "INSTANCE=\"" << run_dir << "/" << io_file_name << ".lp\" timeout " << (int)timeout + 1 << " " << work_dir << "/plan.sh > " << run_dir << "/" << io_file_name << ".out";
 
 	if (no_solve) // do not call solver, just assume success
 		return 0;
