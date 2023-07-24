@@ -36,22 +36,17 @@ Strategy::Strategy(bool debug, bool print_path, bool no_solve, char c, string af
 			cout << "Wrong strategy!" << endl;
 	}
 
-	if (bs.compare("sat") == 0)
+	if (bs.compare("asp-mks") == 0)
 	{
-		sol = new SatSolver(debug, print_path, no_solve, alg, inst, subg, wd.append("/sat"), sd, GetFilename(af), rd, path);
-		sol->name = "sat";
+		sol = new AspSolver(debug, print_path, no_solve, alg, inst, subg, wd.append("/asp"), sd, GetFilename(af), rd);
+		sol->name = "asp-mks";
 	}
 
-	if (bs.compare("asp") == 0)
+	if (bs.compare("asp-soc") == 0)
 	{
-		sol = new AspSolver(debug, print_path, no_solve, alg, inst, subg, wd.append("/asp"), sd, GetFilename(af), rd, path);
-		sol->name = "asp";
-	}
-
-	if (bs.compare("asp-teg") == 0)
-	{
-		sol = new AspSolver(debug, print_path, no_solve, alg, inst, subg, wd.append("/asp"), sd, GetFilename(af), rd, path);
-		sol->name = "asp-teg";
+		sol = new AspSolver(debug, print_path, no_solve, alg, inst, subg, wd.append("/asp"), sd, GetFilename(af), rd);
+		sol->name = "asp-soc";
+		subg->soc = true;
 	}
 }
 
@@ -74,8 +69,9 @@ string Strategy::GetFilename(string s)
 int Strategy::RunTests()
 {
 	int number_of_agents_to_compute = 0;
-	size_t LB = 0;
-	size_t bonus_makespan = 0;
+	size_t mks_LB = 0;
+	size_t soc_LB = 0;
+	size_t bonus_cost = 0;
 	int result = 0;
 	int p_expand = 1;
 
@@ -86,24 +82,26 @@ int Strategy::RunTests()
 	{ 
 		if (result == 0) // ok result -> add new agents
 		{
-			bonus_makespan = 0;
+			bonus_cost = 0;
 			number_of_agents_to_compute += 1;
 			p_expand = 1;
 			sol->ResetStat(timeout);
-			LB = inst->GetLB(number_of_agents_to_compute);
 
 			if (number_of_agents_to_compute > inst->agents.size())
 				break;
 
+			mks_LB = inst->GetMksLB(number_of_agents_to_compute);
+			soc_LB = inst->GetSocLB(number_of_agents_to_compute);
+
 			if (M)
 			{
-				subg->ResetComputedMap();
+				subg->ResetComputedMap(number_of_agents_to_compute);
 				subg->PathsToMap(number_of_agents_to_compute);
-				subg->ExpandMap(1, number_of_agents_to_compute, LB + bonus_makespan);
+				subg->ExpandMap(1, number_of_agents_to_compute, bonus_cost);
 			}
 			if (P || C)
 			{
-				subg->ResetComputedMap();
+				subg->ResetComputedMap(number_of_agents_to_compute);
 				subg->PathsToMap(number_of_agents_to_compute);
 			}
 		}
@@ -111,24 +109,24 @@ int Strategy::RunTests()
 		if (result == -1) // -1 = no solution
 		{
 			if (B || M)
-				bonus_makespan++;
+				bonus_cost++;
 			if (P)
 			{
-				bool res = subg->ExpandMap(p_expand, number_of_agents_to_compute, LB + bonus_makespan);
+				bool res = subg->ExpandMap(p_expand, number_of_agents_to_compute, bonus_cost);
 				p_expand = p_expand * 2;
 
 				if (!res) //if not expanded then add makespan and make max pruning
 				{
-					bonus_makespan++;
-					subg->ResetComputedMap();
+					bonus_cost++;
+					subg->ResetComputedMap(number_of_agents_to_compute);
 					subg->PathsToMap(number_of_agents_to_compute);
 					p_expand = 1;
 				}
 			}
 			if (C)
 			{
-				bonus_makespan++;
-				subg->ExpandMap(1, number_of_agents_to_compute, LB + bonus_makespan);
+				bonus_cost++;
+				subg->ExpandMap(1, number_of_agents_to_compute, bonus_cost);
 			}
 		}
 
@@ -139,14 +137,16 @@ int Strategy::RunTests()
 		cout << "Current number of agents: " << number_of_agents_to_compute << endl;
 		cout << "Strategy being used: " << alg << endl;
 		cout << "Using " << sol->name << " solver" << endl; 
-		cout << "Makespan lower bound: " << LB << endl;
-		cout << "Current makespan used: " << LB + bonus_makespan << endl << endl;
+		cout << "Makespan lower bound: " << mks_LB << endl;
+		cout << "Current makespan used: " << mks_LB + bonus_cost << endl;
+		cout << "Sum of costs lower bound: " << soc_LB << endl;
+		cout << "Current sum of costs used: " << soc_LB + bonus_cost << endl << endl;		
 
 		inst->DebugPrint(subg->computed_map);
 
 		/* END DEBUG */
 
-		result = sol->Solve(number_of_agents_to_compute, LB + bonus_makespan); //if "OK" add agents, if "NO solution" execute strategy, if "Timed out" end
+		result = sol->Solve(number_of_agents_to_compute, bonus_cost); //if "OK" add agents, if "NO solution" execute strategy, if "Timed out" end
 	}
 
 	return 0;

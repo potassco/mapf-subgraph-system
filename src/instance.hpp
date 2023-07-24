@@ -34,7 +34,9 @@ class Instance
 {
 public:
 	Instance(std::string, std::string, std::string, std::string);
-	int GetLB(int);
+	
+	int GetMksLB(int);
+	int GetSocLB(int);
 
 	void DebugPrint(std::vector<std::vector<int> >&);
 	void DebugPrint(std::vector<int>&);
@@ -58,9 +60,13 @@ private:
 	void LoadMap(std::string);
 	void ComputeShortestPaths(std::string);
 	void BFS(std::vector<int>&, Vertex);
+	
 	int GetNumberOfPaths(std::vector<int>&, std::vector<int>&, int);
 	int ManhattanDistance(Vertex&, Vertex&);
 	int SumOfDistances(Vertex&, std::vector<Vertex>&);
 	int MinOfDistances(Vertex&, std::vector<Vertex>&);
 	void VerticesOnShortestPaths(std::vector<int>&, std::vector<int>&, std::vector<Vertex>&, int);
+
+	std::vector<int> mks_LBs;
+	std::vector<int> soc_LBs;
 };

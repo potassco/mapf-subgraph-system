@@ -4,7 +4,6 @@
 #include <chrono>
 
 #include "instance.hpp"
-#include "sat_solver.hpp"
 #include "asp_solver.hpp"
 #include "subgraph_maker.hpp"
 

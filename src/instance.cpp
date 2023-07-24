@@ -50,6 +50,9 @@ void Instance::LoadAgents(string agents_path, string map_dir)
 
 	shortest_paths.resize(agents.size());
 
+	mks_LBs = vector<int>(agents.size() + 1, -1);
+	soc_LBs = vector<int>(agents.size() + 1, -1);
+
 	in.close();
 }
 
@@ -300,11 +303,25 @@ void Instance::BFS(vector<int>& length_from, Vertex start)
 	}
 }
 
-int Instance::GetLB(int ags)
+int Instance::GetMksLB(int ags)
 {
+	if (mks_LBs[ags] >= 0)
+		return mks_LBs[ags];
 	int LB = 0;
 	for (size_t i = 0; i < ags; i++)
 		LB = max(LB, SP_lengths[i]);
+	mks_LBs[ags] = LB;
+	return LB;
+}
+
+int Instance::GetSocLB(int ags)
+{
+	if (soc_LBs[ags] >= 0)
+		return soc_LBs[ags];
+	int LB = 0;
+	for (size_t i = 0; i < ags; i++)
+		LB += SP_lengths[i];
+	soc_LBs[ags] = LB;
 	return LB;
 }
 

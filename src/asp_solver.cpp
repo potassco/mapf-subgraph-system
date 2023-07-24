@@ -2,7 +2,7 @@
 
 using namespace std;
 
-int AspSolver::Solve(int agent_number, int mks)
+int AspSolver::Solve(int agent_number, int bonus_cost)
 {
 	if (timeout < 0)
 		return 1;
@@ -11,17 +11,16 @@ int AspSolver::Solve(int agent_number, int mks)
 
 	io_file_name.clear();
 	if (debug)
-		io_file_name.append(inst->agents_file + "_" + alg + "_" + name + "_" + path + "_" + to_string(agent_number) + "_" + to_string(solver_call));
+		io_file_name.append(inst->agents_file + "_" + alg + "_" + name + "_" + to_string(agent_number) + "_" + to_string(solver_call));
 	else
-		io_file_name.append(inst->agents_file + "_" + alg + "_" + name + "_" + path);
+		io_file_name.append(inst->agents_file + "_" + alg + "_" + name);
 
 	stat_file_name.clear();
-	stat_file_name.append(inst->agents_file + "_" + alg + "_" + name + "_" + path);
-
+	stat_file_name.append(inst->agents_file + "_" + alg + "_" + name);
 
 	subg->GiveNewNumbering();
 
-	PrintInstance(agent_number, mks);
+	PrintInstance(agent_number, bonus_cost);
 
 	stringstream exec;
 	exec << "MAPFOPTS=\"-q --stat\" INSTANCE=\"" << run_dir << "/" << io_file_name << ".lp\" timeout " << (int)timeout + 1 << " " << work_dir << "/scripts/plan.sh > " << run_dir << "/" << io_file_name << ".out";
@@ -31,16 +30,26 @@ int AspSolver::Solve(int agent_number, int mks)
 
 	system(exec.str().c_str());
 
-	return ReadResults(agent_number, mks);
+	return ReadResults(agent_number, bonus_cost);
 }
 
-void AspSolver::PrintInstance(int agent_number, int mks)
+void AspSolver::PrintInstance(int agent_number, int bonus_cost)
 {
 	ofstream asp;
 	string ofile = run_dir;
 	asp.open(ofile.append("/" + io_file_name + ".lp"));
 	if (asp.is_open())
 	{
+		asp << "makespan(" << inst->GetMksLB(agent_number) + bonus_cost << ")." << endl;
+
+		if (name.compare("asp-soc") == 0)
+		{
+			for (int i = 0; i < agent_number; i++)
+				asp << "makespan(" << i + 1 << "," << inst->SP_lengths[i] + bonus_cost << ")." << endl;
+			
+			asp << "delta(" << bonus_cost << ")." << endl;
+		}
+
 		for (size_t i = 0; i < subg->computed_map.size(); i++)
 			for (int j = 0; j < subg->computed_map[i].size(); j++)
 				if (subg->computed_map[i][j] != -1)
@@ -55,71 +64,71 @@ void AspSolver::PrintInstance(int agent_number, int mks)
 			asp << "goal(" << i + 1 << "," << inst->agents[i].goal.x + 1 << "," << inst->agents[i].goal.y + 1 << "). ";
 		asp << endl;
 
-		asp << "makespan(" << mks << ")." << endl;
+		if (name.compare("asp-mks") == 0)
+			subg->MakeTEG_mks(agent_number, inst->GetMksLB(agent_number) + bonus_cost);
 
-		if (name.compare("asp-teg") == 0)
+		if (name.compare("asp-soc") == 0)
+			subg->MakeTEG_soc(agent_number, bonus_cost);
+
+		for (size_t x = 0; x < subg->time_expanded_graph.size(); x++)
 		{
-			subg->MakeTEG_XY(agent_number, mks);
-			for (size_t x = 0; x < subg->time_expanded_graph_xy.size(); x++)
+			for (size_t y = 0; y < subg->time_expanded_graph[x].size(); y++)
 			{
-				for (size_t y = 0; y < subg->time_expanded_graph_xy[x].size(); y++)
+				for (size_t a = 0; a < subg->time_expanded_graph[x][y].size(); a++)
 				{
-					for (size_t a = 0; a < subg->time_expanded_graph_xy[x][y].size(); a++)
+					/*for (size_t t = 0; t < subg->time_expanded_graph_xy[x][y][a].size(); t++)
 					{
-						/*for (size_t t = 0; t < subg->time_expanded_graph_xy[x][y][a].size(); t++)
-						{
-							string agent_loc = string("poss_loc(" + to_string(a + 1) + ",(" + to_string(x + 1) + "," + to_string(y + 1) + "),");
-							asp << agent_loc << subg->time_expanded_graph_xy[x][y][a][t] << "). ";
-						}*/
-
-						if (subg->time_expanded_graph_xy[x][y][a].size() == 0)
-							continue;
-
-						sort(subg->time_expanded_graph_xy[x][y][a].begin(), subg->time_expanded_graph_xy[x][y][a].end());
-
-						bool single = true;
-						bool print = false;
-						int last = subg->time_expanded_graph_xy[x][y][a][0];
 						string agent_loc = string("poss_loc(" + to_string(a + 1) + ",(" + to_string(x + 1) + "," + to_string(y + 1) + "),");
+						asp << agent_loc << subg->time_expanded_graph_xy[x][y][a][t] << "). ";
+					}*/
 
-						asp << agent_loc << subg->time_expanded_graph_xy[x][y][a][0];
+					if (subg->time_expanded_graph[x][y][a].size() == 0)
+						continue;
 
-						for (size_t t = 1; t < subg->time_expanded_graph_xy[x][y][a].size(); t++)
+					sort(subg->time_expanded_graph[x][y][a].begin(), subg->time_expanded_graph[x][y][a].end());
+
+					bool single = true;
+					bool print = false;
+					int last = subg->time_expanded_graph[x][y][a][0];
+					string agent_loc = string("poss_loc(" + to_string(a + 1) + ",(" + to_string(x + 1) + "," + to_string(y + 1) + "),");
+
+					asp << agent_loc << subg->time_expanded_graph[x][y][a][0];
+
+					for (size_t t = 1; t < subg->time_expanded_graph[x][y][a].size(); t++)
+					{
+						if (print)
+							asp << agent_loc << subg->time_expanded_graph[x][y][a][t];
+
+						if (subg->time_expanded_graph[x][y][a][t] == last + 1)
 						{
-							if (print)
-								asp << agent_loc << subg->time_expanded_graph_xy[x][y][a][t];
-
-							if (subg->time_expanded_graph_xy[x][y][a][t] == last + 1)
-							{
-								single = false;
-								print = false;
-								last = subg->time_expanded_graph_xy[x][y][a][t];
-								if (t == subg->time_expanded_graph_xy[x][y][a].size() - 1)
-									asp << ".." << last << "). ";
-								continue;
-							}
-							
-							if (single)
-							{
-								asp << "). ";
-								print = true;
-							}
-							else
-							{
+							single = false;
+							print = false;
+							last = subg->time_expanded_graph[x][y][a][t];
+							if (t == subg->time_expanded_graph[x][y][a].size() - 1)
 								asp << ".." << last << "). ";
-								single = true;
-								print = true;
-							}
-							last = subg->time_expanded_graph_xy[x][y][a][t];
+							continue;
 						}
-
-						if (subg->time_expanded_graph_xy[x][y][a].size() == 1)
+						
+						if (single)
+						{
 							asp << "). ";
+							print = true;
+						}
+						else
+						{
+							asp << ".." << last << "). ";
+							single = true;
+							print = true;
+						}
+						last = subg->time_expanded_graph[x][y][a][t];
 					}
+
+					if (subg->time_expanded_graph[x][y][a].size() == 1)
+						asp << "). ";
 				}
 			}
-			asp << endl;
 		}
+		asp << endl;
 
 		if (print_path) // print shortest paths for each agent
 		{
@@ -149,7 +158,7 @@ void AspSolver::PrintInstance(int agent_number, int mks)
 	return;
 }
 
-int AspSolver::ReadResults(int agent_number, int mks)
+int AspSolver::ReadResults(int agent_number, int bonus_cost)
 {
 	string line;
 	string ifile = run_dir;
@@ -260,7 +269,9 @@ int AspSolver::ReadResults(int agent_number, int mks)
 			output << inst->agents_file << "\t"
 				<< agent_number << "\t"
 				<< subg->vertices << "\t"
-				<< mks << "\t"
+				<< inst->GetMksLB(agent_number) << "\t"
+				<< inst->GetSocLB(agent_number) << "\t"
+				<< bonus_cost << "\t"
 				<< solver_time << "\t"
 				<< total_time << "\t"
 				<< res << "\t"
@@ -284,12 +295,14 @@ int AspSolver::ReadResults(int agent_number, int mks)
 			output.open(ofile.append("/" + stat_file_name + ".res"), ios::app);
 			if (output.is_open())
 			{
-				output << inst->agents_file << "\t"
+				output << name << "\t"
+					<< inst->agents_file << "\t"
 					<< agent_number << "\t"
 					<< inst->number_of_vertices << "\t"
-					<< inst->GetLB(agent_number) << "\t"
+					<< inst->GetMksLB(agent_number) << "\t"
+					<< inst->GetSocLB(agent_number) << "\t"
 					<< subg->vertices << "\t"
-					<< mks << "\t"
+					<< bonus_cost << "\t"
 					<< total_solvertime << "\t"
 					<< total_runtime << "\t"
 					// choices - sum, mean, g_mean, std
