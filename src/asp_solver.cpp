@@ -59,15 +59,37 @@ void AspSolver::PrintInstance(int agent_number, int bonus_cost)
 		for (size_t i = 0; i < subg->computed_map.size(); i++)
 			for (int j = 0; j < subg->computed_map[i].size(); j++)
 				if (subg->computed_map[i][j] != -1)
-					asp << "node(" << i + 1 << "," << j + 1 << "). ";
+					asp << "vertex((" << i + 1 << "," << j + 1 << ")). ";
+		asp << endl;
+
+		for (size_t i = 0; i < subg->computed_map.size(); i++)
+		{
+			for (size_t j = 0; j < subg->computed_map[i].size(); j++)
+			{
+				if (subg->computed_map[i][j] == -1)
+					continue;
+				if (i > 0 && subg->computed_map[i-1][j] != -1)
+					asp << "edge((" << i + 1 << "," << j + 1 << "),(" << i << "," << j + 1 << ")). ";
+				if (i < subg->computed_map.size() - 1 && subg->computed_map[i+1][j] != -1)
+					asp << "edge((" << i + 1 << "," << j + 1 << "),(" << i + 2 << "," << j + 1 << ")). ";
+				if (j > 0 && subg->computed_map[i][j-1] != -1)
+					asp << "edge((" << i + 1 << "," << j + 1 << "),(" << i + 1 << "," << j << ")). ";
+				if (j < subg->computed_map[i].size() - 1 && subg->computed_map[i][j+1] != -1)
+					asp << "edge((" << i + 1 << "," << j + 1 << "),(" << i + 1<< "," << j + 2 << ")). ";
+			}
+		}
 		asp << endl;
 
 		for (int i = 0; i < agent_number; i++)
-			asp << "start(" << i + 1 << "," << inst->agents[i].start.x + 1 << "," << inst->agents[i].start.y + 1 << "). ";
+			asp << "start(" << i + 1 << ",(" << inst->agents[i].start.x + 1 << "," << inst->agents[i].start.y + 1 << ")). ";
 		asp << endl;
 
 		for (int i = 0; i < agent_number; i++)
-			asp << "goal(" << i + 1 << "," << inst->agents[i].goal.x + 1 << "," << inst->agents[i].goal.y + 1 << "). ";
+			asp << "goal(" << i + 1 << ",(" << inst->agents[i].goal.x + 1 << "," << inst->agents[i].goal.y + 1 << ")). ";
+		asp << endl;
+
+		for (int i = 0; i < agent_number; i++)
+			asp << "agent(" << i + 1 << ").";
 		asp << endl;
 
 		if (name.compare("asp-mks") == 0)
