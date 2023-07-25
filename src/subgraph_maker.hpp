@@ -20,6 +20,8 @@ public:
 
 	int vertices;
 	bool soc;
+	bool use_individual_maps;
+	
 private:
 	Instance* inst;
 	

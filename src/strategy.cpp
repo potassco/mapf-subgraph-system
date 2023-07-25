@@ -76,7 +76,10 @@ int Strategy::RunTests()
 	int p_expand = 1;
 
 	if (B)
+	{
 		subg->computed_map = inst->map;
+		subg->use_individual_maps = false;
+	}
 
 	while (result != 1) // 1 = timeout
 	{ 
@@ -138,9 +141,8 @@ int Strategy::RunTests()
 		cout << "Strategy being used: " << alg << endl;
 		cout << "Using " << sol->name << " solver" << endl; 
 		cout << "Makespan lower bound: " << mks_LB << endl;
-		cout << "Current makespan used: " << mks_LB + bonus_cost << endl;
 		cout << "Sum of costs lower bound: " << soc_LB << endl;
-		cout << "Current sum of costs used: " << soc_LB + bonus_cost << endl << endl;		
+		cout << "Current delta used: " << bonus_cost << endl << endl;		
 
 		inst->DebugPrint(subg->computed_map);
 

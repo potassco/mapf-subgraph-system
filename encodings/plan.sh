@@ -5,11 +5,12 @@
 ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && cd .. && pwd)"
 
 : ${CLINGO="clingo"}
+: ${OBJECTIVE="mks"}
 : ${OPTS='--out-atomf=%s.'}
 : ${CONVOPTS="${OPTS} -V0"}
 : ${CONVENC="$ROOT/encodings/translate.lp"}
 : ${MAPFOPTS="-q --stat"}
-: ${MAPFENC="$ROOT/encodings/mks.lp"}
+: ${MAPFENC="$ROOT/encodings/$OBJECTIVE-encoding.lp"}
 : ${INSTANCE="$ROOT/resources/instances/ASP_example/instance.lp"}
 
 convert () {

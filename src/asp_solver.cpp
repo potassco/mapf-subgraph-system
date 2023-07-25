@@ -22,8 +22,14 @@ int AspSolver::Solve(int agent_number, int bonus_cost)
 
 	PrintInstance(agent_number, bonus_cost);
 
+	string objective;
+	if (name.compare("asp-mks") == 0)
+		objective = "mks";
+	if (name.compare("asp-soc") == 0)
+		objective = "soc";
+
 	stringstream exec;
-	exec << "INSTANCE=\"" << run_dir << "/" << io_file_name << ".lp\" timeout " << (int)timeout + 1 << " " << work_dir << "/plan.sh > " << run_dir << "/" << io_file_name << ".out";
+	exec << "OBJECTIVE=" << objective << " INSTANCE=\"" << run_dir << "/" << io_file_name << ".lp\" timeout " << (int)timeout + 1 << " " << work_dir << "/plan.sh > " << run_dir << "/" << io_file_name << ".out";
 
 	if (no_solve) // do not call solver, just assume success
 		return 0;

@@ -7,6 +7,7 @@ SubgraphMaker::SubgraphMaker(Instance* i)
 	inst = i;
 	has_numbering = false;
 	soc = false;
+	use_individual_maps = true;
 }
 
 void SubgraphMaker::ResetComputedMap(int agents)
@@ -108,10 +109,18 @@ void SubgraphMaker::MakeTEG_mks(int agents, int mks)
 
 	for (size_t x = 0; x < computed_map.size(); x++)
 		for (size_t y = 0; y < computed_map[x].size(); y++)
+		{
+			if (computed_map[x][y] == -1)
+				continue;
 			for (size_t a = 0; a < time_expanded_graph[x][y].size(); a++)
+			{
+				if (use_individual_maps && individual_maps[a][x][y] == -1)
+					continue;
 				for (size_t t = 0; t <= mks; t++)
-					if (computed_map[x][y] != -1 && inst->length_from_start[a][inst->map[x][y]] <= t && inst->length_from_goal[a][inst->map[x][y]] <= mks - t)
+					if (inst->length_from_start[a][inst->map[x][y]] <= t && inst->length_from_goal[a][inst->map[x][y]] <= mks - t)
 						time_expanded_graph[x][y][a].push_back(t);
+			}
+		}
 }
 
 // vertex_x, vertex_y, agent, time
@@ -123,15 +132,21 @@ void SubgraphMaker::MakeTEG_soc(int agents, int bonus_cost)
 
 	for (size_t x = 0; x < computed_map.size(); x++)
 		for (size_t y = 0; y < computed_map[x].size(); y++)
+		{
+			if (computed_map[x][y] == -1)
+				continue;
 			for (size_t a = 0; a < time_expanded_graph[x][y].size(); a++)
 			{
+				if (use_individual_maps && individual_maps[a][x][y] == -1)
+					continue;
 				for (size_t t = 0; t <= inst->SP_lengths[a] + bonus_cost; t++)
-					if (computed_map[x][y] != -1 && inst->length_from_start[a][inst->map[x][y]] <= t && inst->length_from_goal[a][inst->map[x][y]] <= inst->SP_lengths[a] + bonus_cost - t)
+					if (inst->length_from_start[a][inst->map[x][y]] <= t && inst->length_from_goal[a][inst->map[x][y]] <= inst->SP_lengths[a] + bonus_cost - t)
 						time_expanded_graph[x][y][a].push_back(t);
 				if (inst->agents[a].goal.x == x && inst->agents[a].goal.y == y)
 					for (size_t t = inst->SP_lengths[a] + bonus_cost + 1; t <= mks; t++)
 						time_expanded_graph[x][y][a].push_back(t);
 			}
+		}
 }
 
 bool SubgraphMaker::IsReachable(int x, int y, int agent, int cost)
