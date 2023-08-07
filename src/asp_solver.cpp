@@ -46,21 +46,22 @@ void AspSolver::PrintInstance(int agent_number, int bonus_cost)
 	asp.open(ofile.append("/" + io_file_name + ".lp"));
 	if (asp.is_open())
 	{
-		asp << "makespan(" << inst->GetMksLB(agent_number) + bonus_cost << ")." << endl;
+		asp << "makespan(" << inst->GetMksLB(agent_number) + bonus_cost << ")." << "\n";
 
 		if (name.compare("asp-soc") == 0)
 		{
 			for (int i = 0; i < agent_number; i++)
-				asp << "makespan(" << i + 1 << "," << inst->SP_lengths[i] + bonus_cost << ")." << endl;
+				asp << "makespan(" << i + 1 << "," << inst->SP_lengths[i] + bonus_cost << ")." << "\n";
 			
-			asp << "delta(" << bonus_cost << ")." << endl;
+			asp << "delta(" << bonus_cost << ")." << "\n";
+			asp << "soc_lb(" << inst->GetSocLB(agent_number) << ")." << "\n";
 		}
 
 		for (size_t i = 0; i < subg->computed_map.size(); i++)
 			for (int j = 0; j < subg->computed_map[i].size(); j++)
 				if (subg->computed_map[i][j] != -1)
 					asp << "vertex((" << i + 1 << "," << j + 1 << ")). ";
-		asp << endl;
+		asp << "\n";
 
 		for (size_t i = 0; i < subg->computed_map.size(); i++)
 		{
@@ -78,19 +79,19 @@ void AspSolver::PrintInstance(int agent_number, int bonus_cost)
 					asp << "edge((" << i + 1 << "," << j + 1 << "),(" << i + 1<< "," << j + 2 << ")). ";
 			}
 		}
-		asp << endl;
+		asp << "\n";
 
 		for (int i = 0; i < agent_number; i++)
 			asp << "start(" << i + 1 << ",(" << inst->agents[i].start.x + 1 << "," << inst->agents[i].start.y + 1 << ")). ";
-		asp << endl;
+		asp << "\n";
 
 		for (int i = 0; i < agent_number; i++)
 			asp << "goal(" << i + 1 << ",(" << inst->agents[i].goal.x + 1 << "," << inst->agents[i].goal.y + 1 << ")). ";
-		asp << endl;
+		asp << "\n";
 
 		for (int i = 0; i < agent_number; i++)
 			asp << "agent(" << i + 1 << ").";
-		asp << endl;
+		asp << "\n";
 
 		if (name.compare("asp-mks") == 0)
 			subg->MakeTEG_mks(agent_number, inst->GetMksLB(agent_number) + bonus_cost);
@@ -156,7 +157,7 @@ void AspSolver::PrintInstance(int agent_number, int bonus_cost)
 				}
 			}
 		}
-		asp << endl;
+		asp << "\n";
 
 		if (print_path) // print shortest paths for each agent
 		{
@@ -171,7 +172,7 @@ void AspSolver::PrintInstance(int agent_number, int bonus_cost)
 						<< t + 1 << "). ";
 				}
 				asp << "spath_length(" << a + 1 << "," << size << ").";
-				asp << endl;
+				asp << "\n";
 			}
 		}
 	}
