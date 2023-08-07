@@ -3,3 +3,4 @@ build
 statistics/*res
 statistics/*log
 run/*
+.vscode
