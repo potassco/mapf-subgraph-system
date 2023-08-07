@@ -1,3 +1,0 @@
-[submodule "resources"]
-	path = resources/instances
-	url = ../mapf-subgraph-instances.git

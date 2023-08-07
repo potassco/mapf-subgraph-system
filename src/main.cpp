@@ -30,8 +30,8 @@ int main(int argc, char** argv)
 	string work_dir = parent_path / "encodings";
 	string statistics_dir = fs::current_path() / "statistics";
 		fs::create_directory(statistics_dir);
-	string input_dir = parent_path / "resources/instances/scenarios";
-	string map_dir = parent_path / "resources/instances/maps";
+	string input_dir = parent_path / "resources/scenarios";
+	string map_dir = parent_path / "resources/maps";
 	string run_dir = fs::current_path() / "run";
 		fs::create_directory(run_dir);
 
