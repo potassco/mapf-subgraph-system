@@ -5,7 +5,7 @@ This is an implementation of graph pruning strategies and shortest paths choices
 ## Contents
 
 - `./encodings` contains the encodings of the ASP-based solver.
-- `./resources/instances` contains the scenario and map files used in the paper.
+- `./resources` contains the scenario and map files used.
 - `./src` contains the source codes in C++ for the strategy framework.
 - `./statistics/results.xlsx` contains the measured results used in the paper.
 - `./experiment.sh` a script that solves all of the included instances using all of the possible combinations of strategies and underlying solvers.
@@ -41,7 +41,7 @@ To solve a single instance, call the framework via
 	-h                  : prints help and exits
 	-d                  : debug print - keep all of the used instance and output files
 	-n                  : do not call solver, only print instance in given format
-	-b base_algorithm   : base algorithm to be used. Available options are asp-mks|asp-soc
+	-b base_algorithm   : base algorithm to be used. Available options are makespan|soc-jump|soc-iter"
 	-i agents_file      : path to an agents file
 	-s strategy         : strategy to be used. Available options are b|m|p|c
 	-t timeout          : timeout of the computation. Default value is 300s
