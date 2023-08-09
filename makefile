@@ -1,7 +1,7 @@
 CC = g++
 CFLAGS = -std=c++11 -O3
 S_DIR = src
-B_DIR = build/bin
+B_DIR = build
 
 _DEPS = strategy.hpp instance.hpp subgraph_maker.hpp asp_solver.hpp isolver.hpp
 DEPS = $(patsubst %,$(S_DIR)/%,$(_DEPS))
@@ -10,7 +10,7 @@ _OBJ = main.o strategy.o instance.o subgraph_maker.o asp_solver.o
 OBJ = $(patsubst %,$(abspath $(S_DIR))/%,$(_OBJ))
 
 subgraph_framework: $(OBJ)
-	mkdir -p build/bin
+	mkdir -p $(B_DIR)
 	$(CC) $(CFLAGS) -o $(B_DIR)/$@ $^ -lstdc++fs
 
 %.o: %.c $(DEPS)
