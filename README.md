@@ -41,7 +41,7 @@ To solve a single instance, call the framework via
 	-h                  : prints help and exits
 	-d                  : debug print - keep all of the used instance and output files
 	-n                  : do not call solver, only print instance in given format
-	-b base_algorithm   : base algorithm to be used. Available options are makespan|soc-jump|soc-iter"
+	-b base_algorithm   : base algorithm to be used. Available options are makespan|soc-jump|soc-iter
 	-i agents_file      : path to an agents file
 	-s strategy         : strategy to be used. Available options are b|m|p|c
 	-t timeout          : timeout of the computation. Default value is 300s
