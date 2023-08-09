@@ -22,14 +22,8 @@ int AspSolver::Solve(int agent_number, int bonus_cost)
 
 	PrintInstance(agent_number, bonus_cost);
 
-	string objective;
-	if (name.compare("asp-mks") == 0)
-		objective = "mks";
-	if (name.compare("asp-soc") == 0)
-		objective = "soc";
-
 	stringstream exec;
-	exec << "OBJECTIVE=" << objective << " INSTANCE=\"" << run_dir << "/" << io_file_name << ".lp\" timeout " << (int)timeout + 1 << " " << work_dir << "/plan.sh > " << run_dir << "/" << io_file_name << ".out";
+	exec << "python " << work_dir << "/mapf.py -i " << run_dir << "/" << io_file_name << ".lp -m " << name << " -t " << (int)timeout + 1 << " > " << run_dir << "/" << io_file_name << ".out";
 
 	if (no_solve) // do not call solver, just assume success
 		return 0;
@@ -48,7 +42,7 @@ void AspSolver::PrintInstance(int agent_number, int bonus_cost)
 	{
 		asp << "makespan(" << inst->GetMksLB(agent_number) + bonus_cost << ")." << "\n";
 
-		if (name.compare("asp-soc") == 0)
+		if (name.compare("soc-jump") == 0 || name.compare("soc-iter") == 0)
 		{
 			for (int i = 0; i < agent_number; i++)
 				asp << "makespan(" << i + 1 << "," << inst->SP_lengths[i] + bonus_cost << ")." << "\n";
@@ -93,10 +87,10 @@ void AspSolver::PrintInstance(int agent_number, int bonus_cost)
 			asp << "agent(" << i + 1 << ").";
 		asp << "\n";
 
-		if (name.compare("asp-mks") == 0)
+		if (name.compare("makespan") == 0)
 			subg->MakeTEG_mks(agent_number, inst->GetMksLB(agent_number) + bonus_cost);
 
-		if (name.compare("asp-soc") == 0)
+		if (name.compare("soc-jump") == 0 || name.compare("soc-iter") == 0)
 			subg->MakeTEG_soc(agent_number, bonus_cost);
 
 		for (size_t x = 0; x < subg->time_expanded_graph.size(); x++)
@@ -215,7 +209,7 @@ int AspSolver::ReadResults(int agent_number, int bonus_cost)
 				continue;
 			}
 
-			if (line.rfind("Time", 0) == 0)	// time of computation
+			if (line.rfind("Time", 0) == 0)	// total time
 			{
 				stringstream ssline(line);
 				string part;
@@ -223,8 +217,18 @@ int AspSolver::ReadResults(int agent_number, int bonus_cost)
 				while (getline(ssline, part, ' '))
 					parsed_line.push_back(part);
 
-				solver_time = stof(parsed_line[12]);
-				total_time = stof(parsed_line[10]);
+				total_time = stof(parsed_line[1]);
+			}
+
+			if (line.rfind("Solving", 0) == 0)	// solver time
+			{
+				stringstream ssline(line);
+				string part;
+				vector<string> parsed_line;
+				while (getline(ssline, part, ' '))
+					parsed_line.push_back(part);
+
+				solver_time = stof(parsed_line[1]);
 			}
 
 			if (line.rfind("Choices", 0) == 0)
@@ -235,47 +239,40 @@ int AspSolver::ReadResults(int agent_number, int bonus_cost)
 				while (getline(ssline, part, ' '))
 					parsed_line.push_back(part);
 
-				choices_vc.push_back(stoi(parsed_line[7]));
-				cout << parsed_line[7] << endl;
+				choices_vc.push_back(stoi(parsed_line[1]));
 			}
 
 			if (line.rfind("Conflicts", 0) == 0)
 			{
-				cout << line << endl;
 				stringstream ssline(line);
 				string part;
 				vector<string> parsed_line;
 				while (getline(ssline, part, ' '))
 					parsed_line.push_back(part);
 
-				conflicts_vc.push_back(stoi(parsed_line[5]));
-				cout << parsed_line[5] << endl;
+				conflicts_vc.push_back(stoi(parsed_line[1]));
 			}
 
 			if (line.rfind("Variables", 0) == 0)
 			{
-				cout << line << endl;
 				stringstream ssline(line);
 				string part;
 				vector<string> parsed_line;
 				while (getline(ssline, part, ' '))
 					parsed_line.push_back(part);
 
-				variables_vc.push_back(stoi(parsed_line[5]));
-				cout << parsed_line[5] << endl;
+				variables_vc.push_back(stoi(parsed_line[1]));
 			}
 
 			if (line.rfind("Constraints", 0) == 0)
 			{
-				cout << line << endl;
 				stringstream ssline(line);
 				string part;
 				vector<string> parsed_line;
 				while (getline(ssline, part, ' '))
 					parsed_line.push_back(part);
 
-				constraints_vc.push_back(stoi(parsed_line[3]));
-				cout << parsed_line[3] << endl;
+				constraints_vc.push_back(stoi(parsed_line[1]));
 			}
 		}
 

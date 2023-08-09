@@ -36,16 +36,23 @@ Strategy::Strategy(bool debug, bool print_path, bool no_solve, char c, string af
 			cout << "Wrong strategy!" << endl;
 	}
 
-	if (bs.compare("asp-mks") == 0)
+	if (bs.compare("makespan") == 0)
 	{
 		sol = new AspSolver(debug, print_path, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
-		sol->name = "asp-mks";
+		sol->name = "makespan";
 	}
 
-	if (bs.compare("asp-soc") == 0)
+	if (bs.compare("soc-jump") == 0)
 	{
 		sol = new AspSolver(debug, print_path, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
-		sol->name = "asp-soc";
+		sol->name = "soc-jump";
+		subg->soc = true;
+	}
+
+	if (bs.compare("soc-iter") == 0)
+	{
+		sol = new AspSolver(debug, print_path, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
+		sol->name = "soc-iter";
 		subg->soc = true;
 	}
 }

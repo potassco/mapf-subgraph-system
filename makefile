@@ -3,10 +3,10 @@ CFLAGS = -std=c++11 -O3
 S_DIR = src
 B_DIR = build/bin
 
-_DEPS = strategy.hpp instance.hpp subgraph_maker.hpp sat_solver.hpp asp_solver.hpp isolver.hpp
+_DEPS = strategy.hpp instance.hpp subgraph_maker.hpp asp_solver.hpp isolver.hpp
 DEPS = $(patsubst %,$(S_DIR)/%,$(_DEPS))
 
-_OBJ = main.o strategy.o instance.o subgraph_maker.o sat_solver.o asp_solver.o
+_OBJ = main.o strategy.o instance.o subgraph_maker.o asp_solver.o
 OBJ = $(patsubst %,$(abspath $(S_DIR))/%,$(_OBJ))
 
 subgraph_framework: $(OBJ)
@@ -20,7 +20,7 @@ clean:
 	rm -f $(S_DIR)/*.o $(B_DIR)/subgraph_framework
 
 test: subgraph_framework
-	$(B_DIR)/subgraph_framework -i resources/instances/scenarios/random-32-32-20-even-10.scen -s p -b asp -t 1 -P -n -d
+	$(B_DIR)/subgraph_framework -i resources/scenarios/test2.scen -s b -b soc-iter -d
 
 experiment: subgraph_framework
 	sh experiment.sh

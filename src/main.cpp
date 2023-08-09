@@ -95,7 +95,7 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
-	if (string(bvalue).compare("asp-mks") != 0 && string(bvalue).compare("asp-soc") != 0)
+	if (string(bvalue).compare("makespan") != 0 && string(bvalue).compare("soc-jump") != 0 && string(bvalue).compare("soc-iter") != 0)
 	{
 		cout << "Unknown base algorithm \"" << bvalue << "\"!" << endl;
 		printHelp(argv);
@@ -139,7 +139,7 @@ void printHelp(char* argv[])
 	cout << "	-h                  : prints help and exits" << endl;
 	cout << "	-d                  : debug print - keep all of the used instance and output files" << endl;
 	cout << "	-n                  : do not call solver, only print instance in given format" << endl;
-	cout << "	-b base_algorithm   : base algorithm to be used. Available options are asp-mks|asp-soc" << endl;
+	cout << "	-b base_algorithm   : base algorithm to be used. Available options are makespan|soc-jump|soc-iter" << endl;
 	cout << "	-i agents_file      : path to an agents file" << endl;
 	cout << "	-s strategy         : strategy to be used. Available options are b|m|p|c" << endl;
 	cout << "	-t timeout          : timeout of the computation. Default value is 300s" << endl;
