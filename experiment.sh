@@ -1,14 +1,13 @@
 #!/bin/bash
 
 timeout=300
+strategy=b
 
-for instance in resources/instances/scenarios/*
+
+for instance in resources/scenarios/*
 do
-	for strategy in b m p c
+	for alg in makespan soc-jump soc-iter
 	do
-		for path in single all random diverse
-		do
-			./build/bin/subgraph_framework -i $instance -s $strategy -b asp-teg -t $timeout -p $path
-		done
+		./build/subgraph_framework -i $instance -s $strategy -b $alg -t $timeout
 	done
 done
