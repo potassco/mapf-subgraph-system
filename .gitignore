@@ -1,6 +1,6 @@
 build
-*.o
+.objects
+run/*
 statistics/*res
 statistics/*log
-run/*
 .vscode
