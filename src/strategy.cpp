@@ -2,12 +2,15 @@
 
 using namespace std;
 
-Strategy::Strategy(bool debug, bool print_path, bool no_solve, char c, string af, string bs, int to, string wd, string sd, string id, string md, string rd, string path)
+Strategy::Strategy(bool debug, bool no_solve, bool os, char c, string af, string bs, int to, int a, int k, string wd, string sd, string id, string md, string rd, string path)
 {
 	inst = new Instance(md, id, GetFilename(af), path);
 	subg = new SubgraphMaker(inst);
 
 	timeout = to;
+	agents_init = a;
+	agents_increment = k;
+	oneshot = os;
 
 	B = false, M = false, P = false, C = false;
 	switch (c)
@@ -36,23 +39,16 @@ Strategy::Strategy(bool debug, bool print_path, bool no_solve, char c, string af
 			cout << "Wrong strategy!" << endl;
 	}
 
-	if (bs.compare("makespan") == 0)
+	if (bs.compare("mks") == 0)
 	{
-		sol = new AspSolver(debug, print_path, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
-		sol->name = "makespan";
+		sol = new AspSolver(debug, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
+		sol->name = "mks";
 	}
 
-	if (bs.compare("soc-jump") == 0)
+	if (bs.compare("soc") == 0)
 	{
-		sol = new AspSolver(debug, print_path, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
-		sol->name = "soc-jump";
-		subg->soc = true;
-	}
-
-	if (bs.compare("soc-iter") == 0)
-	{
-		sol = new AspSolver(debug, print_path, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
-		sol->name = "soc-iter";
+		sol = new AspSolver(debug, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
+		sol->name = "soc";
 		subg->soc = true;
 	}
 }
@@ -75,7 +71,7 @@ string Strategy::GetFilename(string s)
 
 int Strategy::RunTests()
 {
-	int number_of_agents_to_compute = 0;
+	int number_of_agents_to_compute = agents_init - agents_increment;
 	size_t mks_LB = 0;
 	size_t soc_LB = 0;
 	size_t bonus_cost = 0;
@@ -93,12 +89,15 @@ int Strategy::RunTests()
 		if (result == 0) // ok result -> add new agents
 		{
 			bonus_cost = 0;
-			number_of_agents_to_compute += 1;
 			p_expand = 1;
 			sol->ResetStat(timeout);
 
+			number_of_agents_to_compute += agents_increment;
+
 			if (number_of_agents_to_compute > inst->agents.size())
 				break;
+
+			inst->ComputeShortestPaths(number_of_agents_to_compute);
 
 			mks_LB = inst->GetMksLB(number_of_agents_to_compute);
 			soc_LB = inst->GetSocLB(number_of_agents_to_compute);
@@ -156,6 +155,11 @@ int Strategy::RunTests()
 		/* END DEBUG */
 
 		result = sol->Solve(number_of_agents_to_compute, bonus_cost); //if "OK" add agents, if "NO solution" execute strategy, if "Timed out" end
+
+		if (oneshot)
+			return 0;
+		if (result == 0 && agents_increment == 0)	// do not increment
+			return 0;
 	}
 
 	return 0;

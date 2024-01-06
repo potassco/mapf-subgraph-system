@@ -9,7 +9,7 @@
 #include <queue>
 #include <algorithm>
 
-//#include "Algorithms.hpp"
+#include "sp_finder.hpp"
 
 struct Vertex
 {
@@ -38,6 +38,8 @@ public:
 	int GetMksLB(int);
 	int GetSocLB(int);
 
+	void ComputeShortestPaths(int);
+
 	void DebugPrint(std::vector<std::vector<int> >&);
 	void DebugPrint(std::vector<int>&);
 	void DebugPrint(std::vector<Vertex>&);
@@ -54,18 +56,12 @@ public:
 	size_t number_of_vertices;
 
 	std::string agents_file;
+	std::string path_type;
 
 private:
 	void LoadAgents(std::string, std::string);
 	void LoadMap(std::string);
-	void ComputeShortestPaths(std::string);
 	void BFS(std::vector<int>&, Vertex);
-	
-	int GetNumberOfPaths(std::vector<int>&, std::vector<int>&, int);
-	int ManhattanDistance(Vertex&, Vertex&);
-	int SumOfDistances(Vertex&, std::vector<Vertex>&);
-	int MinOfDistances(Vertex&, std::vector<Vertex>&);
-	void VerticesOnShortestPaths(std::vector<int>&, std::vector<int>&, std::vector<Vertex>&, int);
 
 	std::vector<int> mks_LBs;
 	std::vector<int> soc_LBs;

@@ -18,7 +18,7 @@ This is an implementation of graph pruning strategies and shortest paths choices
 Building the framework system requires
 
 - GNU make
-- `g++` compatible with standard c++11 support
+- `g++` compatible with standard c++17 support
 
 The system is intended to run in a POSIX terminal with GNU [bash](https://www.gnu.org/software/bash/).
 

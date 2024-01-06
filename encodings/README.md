@@ -5,4 +5,4 @@ Solve mapf with makespan or sum of costs objectives
 ```
 python mapf.py -i <instance> -m <mode>
 ```
-where `<instance>` is the path to the instance file and `<mode>` is either `makespan`, `soc-jump` or `soc-iter`.
+where `<instance>` is the path to the instance file and `<mode>` is either `mks` or `soc`.

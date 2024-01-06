@@ -11,12 +11,12 @@ int AspSolver::Solve(int agent_number, int bonus_cost)
 
 	io_file_name.clear();
 	if (debug)
-		io_file_name.append(inst->agents_file + "_" + alg + "_" + name + "_" + to_string(agent_number) + "_" + to_string(solver_call));
+		io_file_name.append(inst->agents_file + "_" + alg + "_" + inst->path_type + "_" + name + "_" + to_string(agent_number) + "_" + to_string(solver_call));
 	else
-		io_file_name.append(inst->agents_file + "_" + alg + "_" + name);
+		io_file_name.append(inst->agents_file + "_" + alg + "_" + inst->path_type + "_" + name);
 
 	stat_file_name.clear();
-	stat_file_name.append(inst->agents_file + "_" + alg + "_" + name);
+	stat_file_name.append(inst->agents_file + "_" + alg + "_" + inst->path_type + "_" + name);
 
 	subg->GiveNewNumbering();
 
@@ -42,7 +42,7 @@ void AspSolver::PrintInstance(int agent_number, int bonus_cost)
 	{
 		asp << "makespan(" << inst->GetMksLB(agent_number) + bonus_cost << ")." << "\n";
 
-		if (name.compare("soc-jump") == 0 || name.compare("soc-iter") == 0)
+		if (name.compare("soc") == 0)
 		{
 			for (int i = 0; i < agent_number; i++)
 				asp << "makespan(" << i + 1 << "," << inst->SP_lengths[i] + bonus_cost << ")." << "\n";
@@ -87,10 +87,10 @@ void AspSolver::PrintInstance(int agent_number, int bonus_cost)
 			asp << "agent(" << i + 1 << ").";
 		asp << "\n";
 
-		if (name.compare("makespan") == 0)
+		if (name.compare("mks") == 0)
 			subg->MakeTEG_mks(agent_number, inst->GetMksLB(agent_number) + bonus_cost);
 
-		if (name.compare("soc-jump") == 0 || name.compare("soc-iter") == 0)
+		if (name.compare("soc") == 0)
 			subg->MakeTEG_soc(agent_number, bonus_cost);
 
 		for (size_t x = 0; x < subg->time_expanded_graph.size(); x++)
@@ -152,23 +152,6 @@ void AspSolver::PrintInstance(int agent_number, int bonus_cost)
 			}
 		}
 		asp << "\n";
-
-		if (print_path) // print shortest paths for each agent
-		{
-			for (size_t a = 0; a < agent_number; a++)
-			{
-				int size = inst->shortest_paths[a].size() - 1;
-				for (size_t t = 0; t < inst->shortest_paths[a].size() - 1; t++)
-				{
-					asp << "spath(" << a + 1 << ",("
-						<< inst->shortest_paths[a][size - t].x + 1 << "," << inst->shortest_paths[a][size - t].y + 1 << "),("
-						<< inst->shortest_paths[a][size - (t+1)].x + 1 << "," << inst->shortest_paths[a][size - (t+1)].y + 1 << "),"
-						<< t + 1 << "). ";
-				}
-				asp << "spath_length(" << a + 1 << "," << size << ").";
-				asp << "\n";
-			}
-		}
 	}
 	else
 	{

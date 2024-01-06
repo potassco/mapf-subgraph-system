@@ -7,8 +7,8 @@ using namespace std;
 Instance::Instance(string map_dir, string agents_dir, string a_f, string path)
 {
 	agents_file = a_f;
+	path_type = path;
 	LoadAgents(agents_dir.append("/").append(agents_file), map_dir);
-	ComputeShortestPaths(path);
 }
 
 void Instance::LoadAgents(string agents_path, string map_dir)
@@ -49,6 +49,8 @@ void Instance::LoadAgents(string agents_path, string map_dir)
 	}
 
 	shortest_paths.resize(agents.size());
+	length_from_start = vector<vector<int> >(agents.size(), vector<int>(number_of_vertices, -1));
+	length_from_goal = vector<vector<int> >(agents.size(), vector<int>(number_of_vertices, -1));
 
 	mks_LBs = vector<int>(agents.size() + 1, -1);
 	soc_LBs = vector<int>(agents.size() + 1, -1);
@@ -94,178 +96,53 @@ void Instance::LoadMap(string map_path)
 	in.close();
 }
 
-void Instance::ComputeShortestPaths(string path_type)
+void Instance::ComputeShortestPaths(int number_of_agents_to_compute)
 {
-	length_from_start = vector<vector<int> >(agents.size(), vector<int>(number_of_vertices, -1));
-	length_from_goal = vector<vector<int> >(agents.size(), vector<int>(number_of_vertices, -1));
+	vector<pair<pair<size_t, size_t>, pair<size_t, size_t>>> agents_to_process;
 
-	for (size_t i = 0; i < agents.size(); i++)
+	for (size_t i = 0; i < number_of_agents_to_compute; i++)
 	{
 		BFS(length_from_start[i], agents[i].start);
 		BFS(length_from_goal[i], agents[i].goal);
 
-		int curr_timestep = length_from_start[i][map[agents[i].goal.x][agents[i].goal.y]];
-		SP_lengths.push_back(curr_timestep);
+		SP_lengths.push_back(length_from_start[i][map[agents[i].goal.x][agents[i].goal.y]]);
 
-		// default = single (will be used as the first path in all other approaches)
-		Vertex curr_vertex = agents[i].goal;
-		while (length_from_start[i][map[curr_vertex.x][curr_vertex.y]] != 0)
-		{
-			shortest_paths[i].push_back(curr_vertex);
-			int x = curr_vertex.x;
-			int y = curr_vertex.y;
-
-			if (x > 0 && map[x-1][y] != -1 && length_from_start[i][map[x - 1][y]] + 1 == length_from_start[i][map[x][y]])
-				curr_vertex = {x - 1, y};
-			if (x < height - 1 && map[x+1][y] != -1 && length_from_start[i][map[x + 1][y]] + 1 == length_from_start[i][map[x][y]])
-				curr_vertex = {x + 1, y};
-			if (y > 0 && map[x][y-1] != -1 && length_from_start[i][map[x][y - 1]] + 1 == length_from_start[i][map[x][y]])
-				curr_vertex = {x, y - 1};
-			if (y < width - 1 && map[x][y+1] != -1 && length_from_start[i][map[x][y + 1]] + 1 == length_from_start[i][map[x][y]])
-				curr_vertex = {x, y + 1};
-		}
-		shortest_paths[i].push_back(curr_vertex);
-
-		if (path_type.compare("all") == 0)
-		{
-			VerticesOnShortestPaths(length_from_start[i], length_from_goal[i], shortest_paths[i], SP_lengths[i]);
-		}
-		else if (path_type.compare("random") == 0)
-		{
-			cout << "bef" << endl;
-			int k = GetNumberOfPaths(length_from_start[i], length_from_goal[i], SP_lengths[i]);
-			cout << "aft " << k << endl;
-
-			for (int j = 1; j < k; j++)
-			{
-				curr_vertex = agents[i].goal;
-				while (length_from_start[i][map[curr_vertex.x][curr_vertex.y]] != 0)
-				{
-					int x = curr_vertex.x;
-					int y = curr_vertex.y;
-
-					vector<Vertex> candidates;
-					vector<Vertex> not_visited_candidates;
-
-					if (x > 0 && map[x-1][y] != -1 && length_from_start[i][map[x - 1][y]] + 1 == length_from_start[i][map[x][y]])
-						candidates.push_back({x - 1, y});
-					if (x < height - 1 && map[x+1][y] != -1 && length_from_start[i][map[x + 1][y]] + 1 == length_from_start[i][map[x][y]])
-						candidates.push_back({x + 1, y});
-					if (y > 0 && map[x][y-1] != -1 && length_from_start[i][map[x][y - 1]] + 1 == length_from_start[i][map[x][y]])
-						candidates.push_back({x, y - 1});
-					if (y < width - 1 && map[x][y+1] != -1 && length_from_start[i][map[x][y + 1]] + 1 == length_from_start[i][map[x][y]])
-						candidates.push_back({x, y + 1});
-
-					for (size_t l = 0; l < candidates.size(); l++)
-					{
-						Vertex v = candidates[l];
-						if (find(shortest_paths[i].begin(), shortest_paths[i].end(), v) == shortest_paths[i].end())
-						{
-							not_visited_candidates.push_back(v);
-						}
-					}
-
-					if (not_visited_candidates.size() > 0 && rand()%100 > 30)
-						curr_vertex = not_visited_candidates[rand() % not_visited_candidates.size()];
-					else
-						curr_vertex = candidates[rand() % candidates.size()];
-					shortest_paths[i].push_back(curr_vertex);
-				}
-			}
-		}
-		else if (path_type.compare("diverse") == 0)
-		{
-			int k = GetNumberOfPaths(length_from_start[i], length_from_goal[i], SP_lengths[i]);
-			for (int j = 1; j < k; j++)
-			{
-				// get good initial candidate
-				vector<Vertex> starting_candidates;
-				VerticesOnShortestPaths(length_from_start[i], length_from_goal[i], starting_candidates, SP_lengths[i]);
-
-				int max = -1;
-				Vertex starting_vertex;
-
-				for (size_t l = 0; l < starting_candidates.size(); l++)
-				{
-					int curr_sum = MinOfDistances(starting_candidates[l], shortest_paths[i]);
-					if (curr_sum > max)
-					{
-						starting_vertex = starting_candidates[l];
-						max = curr_sum;
-					}
-				}
-				vector<Vertex> to_add;
-
-				// perform path search from candidate to start
-				curr_vertex = starting_vertex;
-				while (length_from_start[i][map[curr_vertex.x][curr_vertex.y]] != 0)
-				{
-					to_add.push_back(curr_vertex);
-
-					int x = curr_vertex.x;
-					int y = curr_vertex.y;
-
-					vector<Vertex> candidates;
-
-					if (x > 0 && map[x-1][y] != -1 && length_from_start[i][map[x - 1][y]] + 1 == length_from_start[i][map[x][y]])
-						candidates.push_back({x - 1, y});
-					if (x < height - 1 && map[x+1][y] != -1 && length_from_start[i][map[x + 1][y]] + 1 == length_from_start[i][map[x][y]])
-						candidates.push_back({x + 1, y});
-					if (y > 0 && map[x][y-1] != -1 && length_from_start[i][map[x][y - 1]] + 1 == length_from_start[i][map[x][y]])
-						candidates.push_back({x, y - 1});
-					if (y < width - 1 && map[x][y+1] != -1 && length_from_start[i][map[x][y + 1]] + 1 == length_from_start[i][map[x][y]])
-						candidates.push_back({x, y + 1});
-
-					max = -1;
-					for (size_t l = 0; l < candidates.size(); l++)
-					{
-						int curr_val = MinOfDistances(candidates[l], shortest_paths[i]);
-						if (curr_val > max)
-						{
-							max = curr_val;
-							curr_vertex = candidates[l];
-						}
-					}
-				}
-
-				// perform path search from candidate to goal
-
-				curr_vertex = starting_vertex;
-				while (length_from_goal[i][map[curr_vertex.x][curr_vertex.y]] != 0)
-				{
-					to_add.push_back(curr_vertex);
-
-					int x = curr_vertex.x;
-					int y = curr_vertex.y;
-
-					vector<Vertex> candidates;
-
-					if (x > 0 && map[x-1][y] != -1 && length_from_goal[i][map[x - 1][y]] + 1 == length_from_goal[i][map[x][y]])
-						candidates.push_back({x - 1, y});
-					if (x < height - 1 && map[x+1][y] != -1 && length_from_goal[i][map[x + 1][y]] + 1 == length_from_goal[i][map[x][y]])
-						candidates.push_back({x + 1, y});
-					if (y > 0 && map[x][y-1] != -1 && length_from_goal[i][map[x][y - 1]] + 1 == length_from_goal[i][map[x][y]])
-						candidates.push_back({x, y - 1});
-					if (y < width - 1 && map[x][y+1] != -1 && length_from_goal[i][map[x][y + 1]] + 1 == length_from_goal[i][map[x][y]])
-						candidates.push_back({x, y + 1});
-
-					max = -1;
-					for (size_t l = 0; l < candidates.size(); l++)
-					{
-						int curr_val = MinOfDistances(candidates[l], shortest_paths[i]);
-						if (curr_val > max)
-						{
-							max = curr_val;
-							curr_vertex = candidates[l];
-						}
-					}
-				}
-
-				for (size_t l = 0; l < to_add.size(); l++)
-					shortest_paths[i].push_back(to_add[l]);
-			}
-		}
+		agents_to_process.push_back(make_pair(make_pair(agents[i].start.x + 1, agents[i].start.y + 1),make_pair(agents[i].goal.x + 1, agents[i].goal.y + 1)));
 	}
+
+	PathFinderI* pathfinder = NULL;
+	if (!path_type.compare("biased"))
+		pathfinder = new Biased();
+	if (!path_type.compare("random"))
+		pathfinder = new TrullyRandom();
+	if (!path_type.compare("cross"))
+		pathfinder = new WithoutCrossing();
+	if (!path_type.compare("time"))
+		pathfinder = new WithoutCrossingAtSameTimes();
+
+	if (pathfinder == NULL)	// default approach
+		pathfinder = new Biased();
+
+	vector<vector<pair<size_t, size_t>>> output_paths(agents_to_process.size());
+
+	vector<vector<size_t>> ref_map = vector<vector<size_t> >(height + 2, vector<size_t>(width + 2, 0));
+	for (size_t i = 0; i < height; i++)
+		for (size_t j = 0; j < width; j++)
+			ref_map[i + 1][j + 1] = map[i][j] + 1;
+
+	pathfinder->compute_shortest_paths(ref_map, output_paths, agents_to_process);
+
+	for (size_t i = 0; i < output_paths.size(); i++)
+	{
+		vector<Vertex> vc; 
+		for (size_t j = 0; j < output_paths[i].size(); j++)
+		{
+			vc.push_back({int(output_paths[i][j].first - 1), int(output_paths[i][j].second - 1)});
+		}
+		shortest_paths[i] = vc;
+	}
+
+	delete pathfinder;
 } 
 
 void Instance::BFS(vector<int>& length_from, Vertex start)
@@ -323,51 +200,6 @@ int Instance::GetSocLB(int ags)
 		LB += SP_lengths[i];
 	soc_LBs[ags] = LB;
 	return LB;
-}
-
-int Instance::GetNumberOfPaths(vector<int>& length_from_start, vector<int>& length_from_goal, int path_length)
-{
-	//return 3;
-
-	vector<Vertex> vc;
-	VerticesOnShortestPaths(length_from_start, length_from_goal, vc, path_length);
-
-	return (path_length == 0) ? 0 : vc.size()/path_length;
-}
-
-int Instance::ManhattanDistance(Vertex& v, Vertex& u)
-{
-	return abs(v.x - u.x) + abs(v.y - u.y);
-}
-
-int Instance::SumOfDistances(Vertex& v, vector<Vertex>& vc)
-{
-	int sum = 0;
-	for (size_t i = 0; i < vc.size(); i++)
-		sum += ManhattanDistance(v,vc[i]);
-	return sum;
-}
-
-int Instance::MinOfDistances(Vertex& v, vector<Vertex>& vc)
-{
-	int minn = INT32_MAX;
-	for (size_t i = 0; i < vc.size(); i++)
-		minn = min(ManhattanDistance(v,vc[i]), minn);
-	return minn;
-}
-
-void Instance::VerticesOnShortestPaths(vector<int>& length_from_start, vector<int>& length_from_goal, vector<Vertex>& vc, int path_length)
-{
-	for (int x = 0; x < map.size(); x++)
-	{
-		for (int y = 0; y < map[x].size(); y++)
-		{
-			if (map[x][y] == -1)
-				continue;
-			if (length_from_start[map[x][y]] + length_from_goal[map[x][y]] <= path_length)
-			vc.push_back({x,y});
-		}
-	}
 }
 
 /* DEBUG */

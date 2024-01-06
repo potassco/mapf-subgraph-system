@@ -204,7 +204,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-i", help="Instance file(s)")
-    parser.add_argument("-m", help="Mode of solving", choices=["soc-jump", "soc-iter", "makespan"])
+    parser.add_argument("-m", help="Mode of solving", choices=["soc", "mks"])
     parser.add_argument("-t", help="Timeout", type=int, default=604800)
   
 
@@ -212,11 +212,9 @@ if __name__ == "__main__":
 
     app = SocMAPF()
     # rest is supposed to be clingo options
-    if args.m == "soc-jump":
-        process = Process(target=app.main_jump, args=(args.i, ["encodings/solver.lp", "encodings/soc-minimize.lp"], ["--opt-strategy=usc"]))
-    elif args.m == "soc-iter":
+    if args.m == "soc":
         process = Process(target=app.main_bound, args=(args.i, ["encodings/solver.lp", "encodings/soc-bound.lp"]))
-    elif args.m == "makespan":
+    elif args.m == "mks":
         process = Process(target=app.main_bound, args=(args.i, ["encodings/solver.lp"]))
     else:
          print(f"Invalid argument for -m: {args.m}")
