@@ -5,7 +5,7 @@
 
 #include "isolver.hpp"
 
-class AspSolver : public ISolver
+class SatSolver : public ISolver
 {
 public:
 	using ISolver::ISolver;

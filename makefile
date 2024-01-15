@@ -6,10 +6,10 @@ O_DIR = .objects
 
 PROJECT_NAME = subgraph_framework
 
-_DEPS = strategy.hpp instance.hpp subgraph_maker.hpp asp_solver.hpp isolver.hpp sp_finder.hpp
+_DEPS = strategy.hpp instance.hpp subgraph_maker.hpp asp_solver.hpp sat_solver.hpp isolver.hpp sp_finder.hpp
 DEPS = $(patsubst %,$(S_DIR)/%,$(_DEPS))
 
-_OBJ = main.o strategy.o instance.o subgraph_maker.o asp_solver.o sp_finder.o
+_OBJ = main.o strategy.o instance.o subgraph_maker.o asp_solver.o sat_solver.o sp_finder.o
 OBJ = $(patsubst %,$(O_DIR)/%,$(_OBJ))
 
 $(PROJECT_NAME): $(OBJ)
@@ -28,7 +28,7 @@ clean:
 	rm -f run/*
 
 test: $(PROJECT_NAME)
-	$(B_DIR)/$(PROJECT_NAME) -i resources/scenarios/empty08-1.scen -s c -b mks -a 5 -k 0 -p random
+	$(B_DIR)/$(PROJECT_NAME) -i resources/scenarios/empty08-1.scen -s c -b sat-mks -a 5 -k 0 -p random -o
 
 valgrind: $(PROJECT_NAME)
 	valgrind --leak-check=full \
@@ -36,7 +36,7 @@ valgrind: $(PROJECT_NAME)
 	--track-origins=yes \
 	--verbose \
 	--log-file=valgrind-out.txt \
-	$(B_DIR)/$(PROJECT_NAME) -i resources/scenarios/empty08-1.scen -s c -b mks -a 5 -k 0 -p random
+	$(B_DIR)/$(PROJECT_NAME) -i resources/scenarios/empty08-1.scen -s c -b asp-mks -a 5 -k 0 -p random
 
 experiment: subgraph_framework
 	sh experiment.sh

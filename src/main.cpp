@@ -31,7 +31,7 @@ int main(int argc, char** argv)
 	int init_agents = 1;
 	int increment_agents = 1;
 		fs::path parent_path = fs::path(__FILE__).parent_path().parent_path();
-	string work_dir = parent_path / "encodings";
+	string work_dir = parent_path / "solvers";
 	string statistics_dir = fs::current_path() / "statistics";
 		fs::create_directory(statistics_dir);
 	string input_dir = parent_path / "resources/scenarios";
@@ -105,7 +105,8 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
-	if (string(bvalue).compare("mks") != 0 && string(bvalue).compare("soc") != 0)
+	if (string(bvalue).compare("asp-mks") != 0 && string(bvalue).compare("asp-soc") != 0 &&
+		string(bvalue).compare("sat-mks") != 0 && string(bvalue).compare("sat-soc") != 0)
 	{
 		cout << "Unknown base algorithm \"" << bvalue << "\"!" << endl;
 		printHelp(argv);
@@ -150,7 +151,7 @@ void printHelp(char* argv[])
 	cout << "	-d                  : debug print - keep all of the used instance and output files" << endl;
 	cout << "	-n                  : do not call solver, only print instance in given format" << endl;
 	cout << "	-o                  : oneshot solve, do not perform any subsequent calls" << endl;
-	cout << "	-b base_algorithm   : base algorithm to be used. Available options are mks|soc" << endl;
+	cout << "	-b base_algorithm   : base algorithm to be used. Available options are asp-mks|asp-soc|sat-mks|sat-soc" << endl;
 	cout << "	-i agents_file      : path to an agents file" << endl;
 	cout << "	-s strategy         : strategy to be used. Available options are b|m|p|c" << endl;
 	cout << "	-t timeout          : timeout of the computation in s. Default value is 300s" << endl;

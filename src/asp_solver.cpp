@@ -7,6 +7,7 @@ int AspSolver::Solve(int agent_number, int bonus_cost)
 	if (timeout < 0)
 		return 1;
 
+	stat_file_name = "statistics/asp_results.res";
 	solver_call++;
 
 	io_file_name.clear();
@@ -15,15 +16,12 @@ int AspSolver::Solve(int agent_number, int bonus_cost)
 	else
 		io_file_name.append(inst->agents_file + "_" + alg + "_" + inst->path_type + "_" + name);
 
-	stat_file_name.clear();
-	stat_file_name.append(inst->agents_file + "_" + alg + "_" + inst->path_type + "_" + name);
-
 	subg->GiveNewNumbering();
 
 	PrintInstance(agent_number, bonus_cost);
 
 	stringstream exec;
-	exec << "python " << work_dir << "/mapf.py -i " << run_dir << "/" << io_file_name << ".lp -m " << name << " -t " << (int)timeout + 1 << " > " << run_dir << "/" << io_file_name << ".out";
+	exec << "python " << work_dir << "/ASP/mapf.py -i " << run_dir << "/" << io_file_name << ".lp -m " << name << " -t " << (int)timeout + 1 << " > " << run_dir << "/" << io_file_name << ".out";
 
 	if (no_solve) // do not call solver, just assume success
 		return 0;
@@ -214,28 +212,6 @@ int AspSolver::ReadResults(int agent_number, int bonus_cost)
 				solver_time = stof(parsed_line[1]);
 			}
 
-			if (line.rfind("Choices", 0) == 0)
-			{
-				stringstream ssline(line);
-				string part;
-				vector<string> parsed_line;
-				while (getline(ssline, part, ' '))
-					parsed_line.push_back(part);
-
-				choices_vc.push_back(stoi(parsed_line[1]));
-			}
-
-			if (line.rfind("Conflicts", 0) == 0)
-			{
-				stringstream ssline(line);
-				string part;
-				vector<string> parsed_line;
-				while (getline(ssline, part, ' '))
-					parsed_line.push_back(part);
-
-				conflicts_vc.push_back(stoi(parsed_line[1]));
-			}
-
 			if (line.rfind("Variables", 0) == 0)
 			{
 				stringstream ssline(line);
@@ -258,41 +234,7 @@ int AspSolver::ReadResults(int agent_number, int bonus_cost)
 				constraints_vc.push_back(stoi(parsed_line[1]));
 			}
 		}
-
 		input.close();
-
-		ofstream output;
-		string ofile = stat_dir;
-		output.open(ofile.append("/" + stat_file_name + ".log"), ios::app);
-		if (output.is_open())
-		{
-			string res;
-			if (solution_found)
-				res = "OK";
-			else
-				res = "NO SOLUTION";
-
-			if (timeouted)
-				res = "TIMEOUT";
-
-			output << inst->agents_file << "\t"
-				<< agent_number << "\t"
-				<< subg->vertices << "\t"
-				<< inst->GetMksLB(agent_number) << "\t"
-				<< inst->GetSocLB(agent_number) << "\t"
-				<< bonus_cost << "\t"
-				<< solver_time << "\t"
-				<< total_time << "\t"
-				<< res << "\t"
-				<< choices_vc.back() << "\t"
-				<< conflicts_vc.back() << "\t"
-				<< variables_vc.back() << "\t"
-				<< constraints_vc.back() << endl;
-
-			output.close();
-		}
-		else
-			cout << "Could not open log file!" << endl;
 
 		total_runtime += total_time;
 		total_solvertime += solver_time;
@@ -300,12 +242,15 @@ int AspSolver::ReadResults(int agent_number, int bonus_cost)
 
 		if (solution_found)
 		{
-			ofile = stat_dir;
-			output.open(ofile.append("/" + stat_file_name + ".res"), ios::app);
+			ofstream output;
+			output.open(stat_file_name, ios::app);
 			if (output.is_open())
 			{
-				output << name << "\t"
+				output << "asp" << "\t"
 					<< inst->agents_file << "\t"
+					<< inst->path_type << "\t"
+					<< name << "\t"
+					<< alg << "\t"
 					<< agent_number << "\t"
 					<< inst->number_of_vertices << "\t"
 					<< inst->GetMksLB(agent_number) << "\t"
@@ -314,26 +259,12 @@ int AspSolver::ReadResults(int agent_number, int bonus_cost)
 					<< bonus_cost << "\t"
 					<< total_solvertime << "\t"
 					<< total_runtime << "\t"
-					// choices - sum, mean, g_mean, std
-					<< accumulate(choices_vc.begin(), choices_vc.end(), 0) << "\t"
-					<< accumulate(choices_vc.begin(), choices_vc.end(), 0.0) / choices_vc.size() << "\t"
-					<< GeometricMean(choices_vc) << "\t"
-					<< StDev(choices_vc) << "\t"
-					// conflicts - sum, mean, g_mean, std
-					<< accumulate(conflicts_vc.begin(), conflicts_vc.end(), 0) << "\t"
-					<< accumulate(conflicts_vc.begin(), conflicts_vc.end(), 0.0) / conflicts_vc.size() << "\t"
-					<< GeometricMean(conflicts_vc) << "\t"
-					<< StDev(conflicts_vc) << "\t"
-					// variables - sum, mean, g_mean, std
+					<< solver_call << "\t"
+					// variables
 					<< accumulate(variables_vc.begin(), variables_vc.end(), 0) << "\t"
-					<< accumulate(variables_vc.begin(), variables_vc.end(), 0.0) / variables_vc.size() << "\t"
-					<< GeometricMean(variables_vc) << "\t"
-					<< StDev(variables_vc) << "\t"
-					// constraints - sum, mean, g_mean, std
+					// constraints
 					<< accumulate(constraints_vc.begin(), constraints_vc.end(), 0) << "\t"
-					<< accumulate(constraints_vc.begin(), constraints_vc.end(), 0.0) / constraints_vc.size() << "\t"
-					<< GeometricMean(constraints_vc) << "\t"
-					<< StDev(constraints_vc) << endl;
+					<< endl;
 
 				output.close();
 			}
@@ -352,28 +283,4 @@ int AspSolver::ReadResults(int agent_number, int bonus_cost)
 		cout << "Could not open solution file!" << endl;
 	
 	return 1;
-}
-
-
-
-double AspSolver::GeometricMean(std::vector<int>& vc)
-{
-	double product = 1;
-
-	for (int i = 0; i < vc.size(); i++)
-		product = product * vc[i];
-
-	double gm = pow(product, (double)1 / vc.size());
-	return gm;
-}
-
-double AspSolver::StDev(std::vector<int>& vc)
-{
-	double sum = std::accumulate(vc.begin(), vc.end(), 0.0);
-	double mean = sum / vc.size();
-
-	double sq_sum = std::inner_product(vc.begin(), vc.end(), vc.begin(), 0.0);
-	double stdev = std::sqrt(sq_sum / vc.size() - mean * mean);
-
-	return stdev;
 }

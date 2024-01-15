@@ -5,6 +5,7 @@
 
 #include "instance.hpp"
 #include "asp_solver.hpp"
+#include "sat_solver.hpp"
 #include "subgraph_maker.hpp"
 
 class Strategy

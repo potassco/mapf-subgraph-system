@@ -213,9 +213,9 @@ if __name__ == "__main__":
     app = SocMAPF()
     # rest is supposed to be clingo options
     if args.m == "soc":
-        process = Process(target=app.main_bound, args=(args.i, ["encodings/solver.lp", "encodings/soc-bound.lp"]))
+        process = Process(target=app.main_bound, args=(args.i, ["solvers/ASP/solver.lp", "solvers/ASP/soc-bound.lp"]))
     elif args.m == "mks":
-        process = Process(target=app.main_bound, args=(args.i, ["encodings/solver.lp"]))
+        process = Process(target=app.main_bound, args=(args.i, ["solvers/ASP/solver.lp"]))
     else:
          print(f"Invalid argument for -m: {args.m}")
 

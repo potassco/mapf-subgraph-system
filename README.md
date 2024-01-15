@@ -26,6 +26,10 @@ The system is intended to run in a POSIX terminal with GNU [bash](https://www.gn
 
 The ASP encoding requires ASP system [clingo](https://potassco.org/clingo/) in version 5.5.0 or higher
 
+### SAT-based MAPF solver
+
+The SAT-based MAPF solver is availabe in [this repo](https://github.com/svancaj/MAPF-encodings).
+
 ## Installation
 
 Clone this repository recursively via `git clone --recursive`.

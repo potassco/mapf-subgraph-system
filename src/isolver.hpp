@@ -21,8 +21,6 @@ public:
 
 		solver_call = 0;
 
-		choices_vc.clear();
-		conflicts_vc.clear();
 		variables_vc.clear();
 		constraints_vc.clear();
 	}
@@ -50,9 +48,7 @@ protected:
 
 	int solver_call;
 
-	std::vector<int> choices_vc;
-	std::vector<int> conflicts_vc;
 	std::vector<int> variables_vc;
-	std::vector<int> constraints_vc;
+	std::vector<int> constraints_vc; // used for clauses in SAT
 };
 

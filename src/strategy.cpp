@@ -39,15 +39,28 @@ Strategy::Strategy(bool debug, bool no_solve, bool os, char c, string af, string
 			cout << "Wrong strategy!" << endl;
 	}
 
-	if (bs.compare("mks") == 0)
+	if (bs.compare("asp-mks") == 0)
 	{
 		sol = new AspSolver(debug, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
 		sol->name = "mks";
 	}
 
-	if (bs.compare("soc") == 0)
+	if (bs.compare("asp-soc") == 0)
 	{
 		sol = new AspSolver(debug, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
+		sol->name = "soc";
+		subg->soc = true;
+	}
+
+	if (bs.compare("sat-mks") == 0)
+	{
+		sol = new SatSolver(debug, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
+		sol->name = "mks";
+	}
+
+	if (bs.compare("sat-soc") == 0)
+	{
+		sol = new SatSolver(debug, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
 		sol->name = "soc";
 		subg->soc = true;
 	}

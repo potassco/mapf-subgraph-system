@@ -8,6 +8,7 @@
 #include <tuple>
 #include <queue>
 #include <algorithm>
+#include <cstdio>
 
 #include "sp_finder.hpp"
 
