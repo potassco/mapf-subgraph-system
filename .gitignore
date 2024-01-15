@@ -4,3 +4,5 @@ run/*
 statistics/*res
 statistics/*log
 .vscode
+TODO
+valgrind-out.txt

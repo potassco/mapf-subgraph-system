@@ -19,7 +19,7 @@ void Instance::LoadAgents(string agents_path, string map_dir)
 	in.open(agents_path);
 	if (!in.is_open())
 	{
-		cout << "Could not open " << agents_path << endl;
+		cout << "Could not open scenario file " << agents_path << endl;
 		return;
 	}
 
@@ -64,7 +64,7 @@ void Instance::LoadMap(string map_path)
 	in.open(map_path);
 	if (!in.is_open())
 	{
-		cout << "Could not open " << map_path << endl;
+		cout << "Could not open map file " << map_path << endl;
 		return;
 	}
 
