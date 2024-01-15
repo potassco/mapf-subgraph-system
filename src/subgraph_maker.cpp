@@ -7,7 +7,7 @@ SubgraphMaker::SubgraphMaker(Instance* i)
 	inst = i;
 	has_numbering = false;
 	soc = false;
-	use_individual_maps = true;
+	use_individual_maps = false;
 }
 
 void SubgraphMaker::ResetComputedMap(int agents)
