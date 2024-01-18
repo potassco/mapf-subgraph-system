@@ -30,6 +30,7 @@ int main(int argc, char** argv)
 	int timeout = 300;
 	int init_agents = 1;
 	int increment_agents = 1;
+	string path_type = "biased";
 		fs::path parent_path = fs::path(__FILE__).parent_path().parent_path();
 	string work_dir = parent_path / "solvers";
 	string statistics_dir = fs::current_path() / "statistics";
@@ -122,13 +123,13 @@ int main(int argc, char** argv)
 	if (kvalue != NULL)
 		increment_agents = atoi(kvalue);
 
-	if (pvalue == NULL)
-		pvalue = "biased";
+	if (pvalue != NULL)
+		path_type = pvalue;
 
 	Strategy* strat;
 
 	if (svalue[0] == 'b' || svalue[0] == 'm' || svalue[0] == 'p' || svalue[0] == 'c')
-		strat = new Strategy(dflag, nflag, oflag, svalue[0], ivalue, bvalue, timeout, init_agents, increment_agents, work_dir, statistics_dir, input_dir, map_dir, run_dir, pvalue);
+		strat = new Strategy(dflag, nflag, oflag, svalue[0], ivalue, bvalue, timeout, init_agents, increment_agents, work_dir, statistics_dir, input_dir, map_dir, run_dir, path_type);
 	else
 	{
 		cout << "Unknown strategy!" << endl;

@@ -25,6 +25,11 @@ public:
 		constraints_vc.clear();
 	}
 
+	int GetRemainingTime()
+	{
+		return timeout;
+	}
+
 	std::string name;
 
 protected:

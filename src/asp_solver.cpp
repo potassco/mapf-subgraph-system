@@ -26,7 +26,10 @@ int AspSolver::Solve(int agent_number, int bonus_cost)
 	if (no_solve) // do not call solver, just assume success
 		return 0;
 
-	system(exec.str().c_str());
+	int ret = system(exec.str().c_str());
+
+	if (ret != 0)
+		return 1;
 
 	return ReadResults(agent_number, bonus_cost);
 }

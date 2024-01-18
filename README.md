@@ -41,16 +41,18 @@ To build the framework system, run `make` in the root directory of your locally 
 To solve a single instance, call the framework via
 
 ``` bash
-./subgraph_framework  [-h] [-d] -b base_algorithm -i agents_file -s strategy [-t timeout] [-p shortest_path]
+./subgraph_framework  [-h] [-d] [-n] [-o] -b base_algorithm -i agents_file -s strategy [-t timeout] [-p shortest_path] [-P] [-a initial_agents] [-k agents_increment]
 	-h                  : prints help and exits
 	-d                  : debug print - keep all of the used instance and output files
 	-n                  : do not call solver, only print instance in given format
-	-b base_algorithm   : base algorithm to be used. Available options are makespan|soc-jump|soc-iter
+	-o                  : oneshot solve, do not perform any subsequent calls
+	-b base_algorithm   : base algorithm to be used. Available options are asp-mks|asp-soc|sat-mks|sat-soc
 	-i agents_file      : path to an agents file
 	-s strategy         : strategy to be used. Available options are b|m|p|c
-	-t timeout          : timeout of the computation. Default value is 300s
-	-p shortest_path    : what shortest path to use to create the pruned graph. Available options are single|all|random|diverse. Default is single.
-	-P                  : print the shortest path used to build the pruned graph. Works only with -p single.
+	-t timeout          : timeout of the computation in s. Default value is 300s
+	-p shortest_path    : what shortest path to use to create the pruned graph. Available options are biased|random|cross|time. Default is biased
+	-a initial_agents   : initial number of agents. Default is 1
+	-k agents_increment : increment in number of agents after successful solve. Default is 1. If 0 is selected, do not increase.
 ```
 
 To solve all of the included scenario files, call `make experiment`. The result files are stored in the `./statistics` folder.

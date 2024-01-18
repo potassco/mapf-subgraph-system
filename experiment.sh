@@ -1,13 +1,17 @@
 #!/bin/bash
 
-timeout=300
-strategy=b
-
+timeout=100
 
 for instance in resources/scenarios/*
 do
-	for alg in makespan soc-jump soc-iter
+	for alg in sat-mks sat-soc
 	do
-		./build/subgraph_framework -i $instance -s $strategy -b $alg -t $timeout
+		for strategy in b m p c
+		do
+			for path in biased random cross time
+			do
+				./build/subgraph_framework -i $instance -s $strategy -b $alg -p $path -t $timeout -a 5 -k 5
+			done
+		done
 	done
 done

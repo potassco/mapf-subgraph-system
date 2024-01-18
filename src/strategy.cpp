@@ -12,6 +12,8 @@ Strategy::Strategy(bool debug, bool no_solve, bool os, char c, string af, string
 	agents_increment = k;
 	oneshot = os;
 
+	cout << timeout << endl;
+
 	B = false, M = false, P = false, C = false;
 	switch (c)
 	{
@@ -159,9 +161,11 @@ int Strategy::RunTests()
 		cout << "Current number of agents: " << number_of_agents_to_compute << endl;
 		cout << "Strategy being used: " << alg << endl;
 		cout << "Using " << sol->name << " solver" << endl; 
+		cout << "SP finder: " << inst->path_type << endl;
 		cout << "Makespan lower bound: " << mks_LB << endl;
 		cout << "Sum of costs lower bound: " << soc_LB << endl;
-		cout << "Current delta used: " << bonus_cost << endl << endl;		
+		cout << "Current delta used: " << bonus_cost << endl;
+		cout << "Remaining time: " << sol->GetRemainingTime() << "[s]" << endl << endl;		
 
 		inst->DebugPrint(subg->computed_map);
 

@@ -28,7 +28,7 @@ clean:
 	rm -f run/*
 
 test: $(PROJECT_NAME)
-	$(B_DIR)/$(PROJECT_NAME) -i resources/scenarios/empty08-1.scen -s c -b sat-mks -a 5 -k 0 -p random -o
+	$(B_DIR)/$(PROJECT_NAME) -i resources/scenarios/empty08-1.scen -s c -b sat-soc -a 5 -k 5 -p random
 
 valgrind: $(PROJECT_NAME)
 	valgrind --leak-check=full \
@@ -38,5 +38,5 @@ valgrind: $(PROJECT_NAME)
 	--log-file=valgrind-out.txt \
 	$(B_DIR)/$(PROJECT_NAME) -i resources/scenarios/empty08-1.scen -s c -b asp-mks -a 5 -k 0 -p random
 
-experiment: subgraph_framework
+experiment: $(PROJECT_NAME)
 	sh experiment.sh

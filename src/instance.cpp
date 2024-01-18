@@ -124,7 +124,10 @@ void Instance::ComputeShortestPaths(int number_of_agents_to_compute)
 		pathfinder = new WithoutCrossingAtSameTimes();
 
 	if (pathfinder == NULL)	// default approach
+	{	
+		path_type = "biased";
 		pathfinder = new Biased();
+	}
 
 	vector<vector<pair<size_t, size_t>>> output_paths(agents_to_process.size());
 

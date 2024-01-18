@@ -32,7 +32,10 @@ int SatSolver::Solve(int agent_number, int bonus_cost)
 	if (no_solve) // do not call solver, just assume success
 		return 0;
 
-	system(exec.str().c_str());
+	int ret = system(exec.str().c_str());
+
+	if (ret != 0)
+		return 1;
 
 	return ReadResults(agent_number, bonus_cost);
 }
@@ -136,7 +139,7 @@ int SatSolver::ReadResults(int agent_number, int bonus_cost)
 
 		total_runtime += total_time;
 		total_solvertime += solver_time;
-		timeout -= total_time;
+		timeout -= total_time/1000; // timeout is is [s], while total time in [ms]
 
 		if (solution_found)
 		{
