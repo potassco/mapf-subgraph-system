@@ -27,8 +27,7 @@ int SatSolver::Solve(int agent_number, int bonus_cost)
 			<< " -m " << run_dir
 			<< " -t " << timeout
 			<< " -d " << bonus_cost
-			<< " -f " << run_dir << "/" << io_file_name << ".out"
-			<< " -o -q";
+			<< " -l 1 -o -q > " << run_dir << "/" << io_file_name << ".out";
 
 	if (no_solve) // do not call solver, just assume success
 		return 0;
@@ -134,8 +133,6 @@ int SatSolver::ReadResults(int agent_number, int bonus_cost)
 			}
 		}
 		input.close();
-
-		remove(ifile.c_str());
 
 		total_runtime += total_time;
 		total_solvertime += solver_time;
