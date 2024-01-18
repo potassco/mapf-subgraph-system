@@ -59,6 +59,8 @@ public:
 	std::string agents_file;
 	std::string path_type;
 
+	int path_compute_time;
+
 private:
 	void LoadAgents(std::string, std::string);
 	void LoadMap(std::string);

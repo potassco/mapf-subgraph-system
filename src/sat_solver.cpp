@@ -155,6 +155,7 @@ int SatSolver::ReadResults(int agent_number, int bonus_cost)
 					<< inst->GetSocLB(agent_number) << "\t"
 					<< subg->vertices << "\t"
 					<< bonus_cost << "\t"
+					<< inst->path_compute_time << "\t"
 					<< total_solvertime << "\t"
 					<< total_runtime << "\t"
 					<< solver_call << "\t"

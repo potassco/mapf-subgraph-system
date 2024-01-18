@@ -257,6 +257,7 @@ int AspSolver::ReadResults(int agent_number, int bonus_cost)
 					<< inst->GetSocLB(agent_number) << "\t"
 					<< subg->vertices << "\t"
 					<< bonus_cost << "\t"
+					<< inst->path_compute_time << "\t"
 					<< int(1000*total_solvertime) << "\t"
 					<< int(1000*total_runtime) << "\t"
 					<< solver_call << "\t"

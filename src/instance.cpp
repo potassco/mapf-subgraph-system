@@ -98,6 +98,9 @@ void Instance::LoadMap(string map_path)
 
 void Instance::ComputeShortestPaths(int number_of_agents_to_compute)
 {
+	path_compute_time = 0;
+
+	auto time_start = chrono::high_resolution_clock::now();
 	vector<pair<pair<size_t, size_t>, pair<size_t, size_t>>> agents_to_process;
 
 	for (size_t i = 0; i < number_of_agents_to_compute; i++)
@@ -143,6 +146,10 @@ void Instance::ComputeShortestPaths(int number_of_agents_to_compute)
 	}
 
 	delete pathfinder;
+
+	auto time_end = chrono::high_resolution_clock::now();
+
+	path_compute_time = chrono::duration_cast<chrono::milliseconds>(time_end - time_start).count();
 } 
 
 void Instance::BFS(vector<int>& length_from, Vertex start)
