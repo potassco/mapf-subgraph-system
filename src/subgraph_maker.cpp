@@ -102,6 +102,31 @@ int SubgraphMaker::GiveNewNumbering()
 	return vertices;
 }
 
+bool SubgraphMaker::IsReachable(int x, int y, int agent, int cost)
+{
+	if (inst->length_from_start[agent][inst->map[x][y]] + inst->length_from_goal[agent][inst->map[x][y]] <= cost)
+		return true;
+	return false;
+}
+
+bool SubgraphMaker::FlattenMaps()
+{
+	bool changed = false;
+	for (size_t a = 0; a < individual_maps.size(); a++)
+		for (size_t i = 0; i < individual_maps[a].size(); i++)
+			for (size_t j = 0; j < individual_maps[a][i].size(); j++)
+				if (individual_maps[a][i][j] != -1)
+				{
+					if (computed_map[i][j] == -1)
+						changed = true;
+					computed_map[i][j] = 0;
+					individual_maps[a][i][j] = 0;
+				}
+	return changed;
+}
+
+/**************** LEGACY *****************/
+/*
 // vertex_x, vertex_y, agent, time
 void SubgraphMaker::MakeTEG_mks(int agents, int mks)
 {
@@ -149,25 +174,4 @@ void SubgraphMaker::MakeTEG_soc(int agents, int bonus_cost)
 		}
 }
 
-bool SubgraphMaker::IsReachable(int x, int y, int agent, int cost)
-{
-	if (inst->length_from_start[agent][inst->map[x][y]] + inst->length_from_goal[agent][inst->map[x][y]] <= cost)
-		return true;
-	return false;
-}
-
-bool SubgraphMaker::FlattenMaps()
-{
-	bool changed = false;
-	for (size_t a = 0; a < individual_maps.size(); a++)
-		for (size_t i = 0; i < individual_maps[a].size(); i++)
-			for (size_t j = 0; j < individual_maps[a][i].size(); j++)
-				if (individual_maps[a][i][j] != -1)
-				{
-					if (computed_map[i][j] == -1)
-						changed = true;
-					computed_map[i][j] = 0;
-					individual_maps[a][i][j] = 0;
-				}
-	return changed;
-}
+*/

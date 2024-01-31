@@ -24,7 +24,8 @@ The system is intended to run in a POSIX terminal with GNU [bash](https://www.gn
 
 ### ASP encoding
 
-The ASP encoding requires ASP system [clingo](https://potassco.org/clingo/) in version 5.5.0 or higher
+The ASP encoding requires ASP system [clingo](https://potassco.org/clingo/) in version 5.5.0 or higher.
+The encodings and preprocessing are available in [this repo](https://github.com/krr-up/mapf-optimal-solver).
 
 ### SAT-based MAPF solver
 

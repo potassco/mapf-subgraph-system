@@ -44,13 +44,13 @@ Strategy::Strategy(bool debug, bool no_solve, bool os, char c, string af, string
 	if (bs.compare("asp-mks") == 0)
 	{
 		sol = new AspSolver(debug, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
-		sol->name = "mks";
+		sol->name = "makespan";
 	}
 
 	if (bs.compare("asp-soc") == 0)
 	{
 		sol = new AspSolver(debug, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
-		sol->name = "soc";
+		sol->name = "soc-iter";
 		subg->soc = true;
 	}
 

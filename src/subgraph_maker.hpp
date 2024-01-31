@@ -10,9 +10,10 @@ public:
 	void ResetComputedMap(int);
 	void PathsToMap(int);
 	bool ExpandMap(int, int, int);
-	void MakeTEG_mks(int,int);
-	void MakeTEG_soc(int,int);
 	int GiveNewNumbering();
+	
+	//void MakeTEG_mks(int,int);
+	//void MakeTEG_soc(int,int);
 
 	std::vector<std::vector<int> > computed_map;
 	std::vector<std::vector<std::vector<int> > > individual_maps;

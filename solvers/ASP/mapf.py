@@ -1,4 +1,4 @@
-import functools
+
 import os
 import sys
 import re
@@ -12,10 +12,13 @@ from multiprocessing import Process, Queue
 
 import subprocess
 
+import cmapf
+
 import clingo
 
 SAT = "SATISFIABLE"
 UNSAT = "UNSATISFIABLE"
+OBJECTIVE = cmapf.Objective.SUM_OF_COSTS
 
 def get_const(ctl, name, default):
     c = ctl.get_const(name)
@@ -59,47 +62,36 @@ class SocMAPF:
         self.call = ["clingo"]
 
         self.cmd_clingo = False
-    
-    def prepare_ctl(self, files):
-        ctl = clingo.Control(self.args)
-        for _f in files:
-            ctl.load(_f)
-        
-        return ctl
-
-    def call_clingo(self, cmd):
-        try:
-            output = subprocess.check_output(cmd)
-        except subprocess.CalledProcessError as e:
-            output = e.output.decode("utf-8")
-
-        return output
 
     def on_model(self, model):
         self.model = model.symbols(shown=True)
 
-        #for atom in model.symbols(shown=True):
-        #        print(atom)
+        self._bound = 0
+        for atom in model.symbols(shown=True):
+            if atom.match("penalty", 2):
+                self._bound += 1
+            
+            #print(atom)
 
         #print("\n\n")
 
     def get_stats(self, ctl):
         #populate stats class
         #print(ctl.statistics)
-        Count.add("Choices", ctl.statistics["solving"]["solvers"]["choices"])
-        Count.add("Conflicts", ctl.statistics["solving"]["solvers"]["conflicts"])
-        Count.add("Time", ctl.statistics["summary"]["times"]["total"])
+        Count.add("choices", ctl.statistics["solving"]["solvers"]["choices"])
+        Count.add("conflicts", ctl.statistics["solving"]["solvers"]["conflicts"])
+        Count.add("time", ctl.statistics["summary"]["times"]["total"])
         Count.add("Solving", ctl.statistics["summary"]["times"]["solve"])
-        Count.add("Grounding", ctl.statistics["summary"]["times"]["total"] - ctl.statistics["summary"]["times"]["solve"])
+        Count.add("grounding", ctl.statistics["summary"]["times"]["total"] - ctl.statistics["summary"]["times"]["solve"])
 
-        Count.add("Rules", ctl.statistics["problem"]["lp"]["rules"])
-        Count.add("Atoms", ctl.statistics["problem"]["lp"]["atoms"])
+        Count.add("rules", ctl.statistics["problem"]["lp"]["rules"])
+        Count.add("atoms", ctl.statistics["problem"]["lp"]["atoms"])
 
-        Count.add("Variables", ctl.statistics["problem"]["generator"]["vars"])
-        Count.add("Constraints", ctl.statistics["problem"]["generator"]["constraints"])
+        Count.add("vars", ctl.statistics["problem"]["generator"]["vars"])
+        Count.add("constraints", ctl.statistics["problem"]["generator"]["constraints"])
 
 
-    def call_clingo_ctl(self, files, args, prg=""):
+    def call_clingo_ctl(self, files, args, prg="", delta=0):
         ctl = clingo.Control(args + ["--single-shot"])
 
         ctl.add(prg)
@@ -107,13 +99,59 @@ class SocMAPF:
         for _f in files:
             ctl.load(_f)
         
+        # ground only instance
         ctl.ground()
+
+        mapf_problem = cmapf.Problem(ctl)
+        mapf_problem.add_sp_length(ctl)
+
+        parts = [("mapf",()),("optimize",())]
+
+        if OBJECTIVE == cmapf.Objective.SUM_OF_COSTS:
+            parts.append(("sum_of_cost",()))
+
+            with ctl.backend() as bck:
+                atom = bck.add_atom(clingo.Function("delta", [clingo.Number(delta)]))
+                bck.add_rule([atom])
+
+            delta_or_makespan = delta
+
+        elif OBJECTIVE == cmapf.Objective.MAKESPAN:
+            parts.append(("makespan",()))
+
+            min_horizon = 0
+            for agent_sp in ctl.symbolic_atoms.by_signature("sp_length", 2):
+                sp = agent_sp.symbol.arguments[1].number
+                min_horizon = max(sp, min_horizon)
+
+            with ctl.backend() as bck:
+                atom = bck.add_atom(
+                    clingo.Function("mks", [clingo.Number(min_horizon + delta)])
+                )
+                bck.add_rule([atom])
+
+            delta_or_makespan = min_horizon + delta
+        
+        solvable = mapf_problem.add_reachable(ctl, OBJECTIVE, delta_or_makespan)
+        
+        if solvable is None:
+            # if an agent can not reach its goal, then make the program UNSAT
+            with ctl.backend() as bck:
+                bck.add_rule([])
+            Count.add("Unreachable goal")
+
+        # ground the rest
+        ctl.ground(parts)
+
+        count = cmapf.count_atoms(ctl.symbolic_atoms, "reach", 3)
+        Count.add("reach atoms", count)
+
         print("Working...")
         res = ctl.solve(on_model=self.on_model)
         self.get_stats(ctl)
+        
         if res.satisfiable:
             return SAT
-
         return UNSAT
 
     def print_stats(self, res):
@@ -122,81 +160,51 @@ class SocMAPF:
             print(name + " {:.2f}".format(count))
             #accu[f"{name:24}"] = count
         print(res)
+        print(f"Sum of Cost: {self._bound}")
 
-    def main_bound(self, instance, encodings, clingo_args=[]):
+    def main_bound(self, instance, encodings, clingo_args=[], delta=0):
         
-
-        res = self.call_clingo_ctl(encodings+[instance], clingo_args)
+        res = self.call_clingo_ctl(encodings+[instance], clingo_args, delta=delta)
         #res = self.call_clingo_ctl(encodings+instances, clingo_args, extra_atoms)
 
         self.print_stats(res)
 
+    def main_jump(self, instance, encodings, clingo_args=[], old_method=False, delta=0):
 
-    def main_jump(self, instance, encodings, clingo_args=[]):
 
-
-        res = self.call_clingo_ctl(encodings+[instance], clingo_args)
+        res = self.call_clingo_ctl(encodings+[instance], clingo_args, delta=delta)
         if res == UNSAT:
              self.print_stats(res)
              return
 
 
-        agent_horizons = {}
         agent_sps = {}
+
         for atom in self.model:
-            if atom.match("soc_lb",1):
-                minsoc = atom.arguments[0].number
-
-            elif atom.match("delta",1):
-                delta = atom.arguments[0].number
-
-            elif atom.match("makespan",2):
-                ag = atom.arguments[0].number
-                hor = atom.arguments[1].number
-                agent_horizons[ag] = hor
-        
-            elif atom.match("agent_SP",2):
+            if atom.match("sp_length",2):
                 ag = atom.arguments[0].number
                 hor = atom.arguments[1].number
                 agent_sps[ag] = hor
 
-            elif atom.match("cost",1):
-                self._bound = atom.arguments[0].number
+        minsoc = sum(agent_sps.values())
 
-        #print(f"SoC is {self._bound}")
-        #print("Sum of SPs is", minsoc)
+        print(f"SoC is {self._bound}")
+        print("Sum of SPs is", minsoc)
 
         if self._bound == minsoc:
              res = SAT
         elif  self._bound == minsoc + delta:
              res = SAT
         else:
-            min_hor = 1000000000000
-            for ag, hor in agent_sps.items():
-                 min_hor = min(min_hor, hor)
-
+            print("jumping")
             new_delta = self._bound - minsoc
-            new_hor = min_hor + new_delta
-            #print(f"New delta is {new_delta}")
-            #print(f"New makespan is {new_hor}")
-            extra_atoms = f"makespan({new_hor}). delta({new_delta})."
-            if len(agent_horizons) != 0:
-                 # increase agent makespans by difference between new and old delta
-                 for agent, hor in agent_horizons.items():
-                    extra_atoms += f"makespan({agent},{hor + new_delta - delta})."
 
-            if len(agent_sps) != 0:
-                 # increase agent makespans by difference between new and old delta
-                 for agent, hor in agent_sps.items():
-                    extra_atoms += f"agent_SP({agent},{hor})."
+            if old_method:
+                # old method starts with makespan but uses SoC in the jump.
+                OBJECTIVE = cmapf.Objective.SUM_OF_COSTS
 
-            res = self.call_clingo_ctl(encodings+[instance], clingo_args+["-c", "jump=1"], extra_atoms)
+            res = self.call_clingo_ctl(encodings+[instance], clingo_args, delta=new_delta)
 
-        for atom in self.model:
-            if atom.match("cost",1):
-                self._bound = atom.arguments[0].number
-
-        #print(f"new SoC is {self._bound}")
         self.print_stats(res)
 
 if __name__ == "__main__":
@@ -204,7 +212,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-i", help="Instance file(s)")
-    parser.add_argument("-m", help="Mode of solving", choices=["soc", "mks"])
+    parser.add_argument("-m", help="Mode of solving", choices=["soc-jump", "soc-iter", "makespan", "soc-jump-original"])
+    parser.add_argument("-d", help="The delta to consider", type=int, default=0)
     parser.add_argument("-t", help="Timeout", type=int, default=604800)
   
 
@@ -212,10 +221,18 @@ if __name__ == "__main__":
 
     app = SocMAPF()
     # rest is supposed to be clingo options
-    if args.m == "soc":
-        process = Process(target=app.main_bound, args=(args.i, ["solvers/ASP/solver.lp", "solvers/ASP/soc-bound.lp"]))
-    elif args.m == "mks":
-        process = Process(target=app.main_bound, args=(args.i, ["solvers/ASP/solver.lp"]))
+    if args.m == "soc-jump":
+        OBJECTIVE = cmapf.Objective.SUM_OF_COSTS
+        process = Process(target=app.main_jump, args=(args.i, ["solvers/ASP/encodings/solver.lp", "solvers/ASP/encodings/soc-minimize.lp"], ["--opt-strategy=usc"], False, args.d))
+    if args.m == "soc-jump-original":
+        OBJECTIVE = cmapf.Objective.MAKESPAN
+        process = Process(target=app.main_jump, args=(args.i, ["solvers/ASP/encodings/solver.lp", "solvers/ASP/encodings/soc-minimize.lp"], ["--opt-strategy=usc"], True, args.d))
+    elif args.m == "soc-iter":
+        OBJECTIVE = cmapf.Objective.SUM_OF_COSTS
+        process = Process(target=app.main_bound, args=(args.i, ["solvers/ASP/encodings/solver.lp", "solvers/ASP/encodings/soc-bound.lp"], [], args.d))
+    elif args.m == "makespan":
+        OBJECTIVE = cmapf.Objective.MAKESPAN
+        process = Process(target=app.main_bound, args=(args.i, ["solvers/ASP/encodings/solver.lp"], [], args.d))
     else:
          print(f"Invalid argument for -m: {args.m}")
 
