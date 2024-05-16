@@ -25,7 +25,7 @@ $(O_DIR)_exists:
 clean:
 	rm -rf $(O_DIR) 
 	rm -rf $(B_DIR)
-	rm -f run/*
+	rm -rf run
 
 test: $(PROJECT_NAME)
 	$(B_DIR)/$(PROJECT_NAME) -i resources/scenarios/empty08-1.scen -s c -b asp-mks -a 5 -k 0 -p random
