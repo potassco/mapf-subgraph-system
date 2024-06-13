@@ -12,8 +12,6 @@ Strategy::Strategy(bool debug, bool no_solve, bool os, char c, string af, string
 	agents_increment = k;
 	oneshot = os;
 
-	cout << timeout << endl;
-
 	B = false, M = false, P = false, C = false;
 	switch (c)
 	{
@@ -51,6 +49,19 @@ Strategy::Strategy(bool debug, bool no_solve, bool os, char c, string af, string
 	{
 		sol = new AspSolver(debug, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
 		sol->name = "soc-iter";
+		subg->soc = true;
+	}
+
+	if (bs.compare("asp-inc-mks") == 0)
+	{
+		sol = new AspIncSolver(debug, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
+		sol->name = "makespan-inc";
+	}
+
+	if (bs.compare("asp-inc-soc") == 0)
+	{
+		sol = new AspIncSolver(debug, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
+		sol->name = "soc-inc";
 		subg->soc = true;
 	}
 
