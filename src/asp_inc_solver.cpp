@@ -83,9 +83,20 @@ void AspIncSolver::PrintInstance(int agent_number, int bonus_cost)
     // reachability mks - TODO
     if (!name.compare("makespan-inc"))
     {
-        // auto xy_reach_func = Clingo::Function("", {Clingo::Number(vertex.first), Clingo::Number(vertex.second)});
-        // auto atm = bck.add_atom(Clingo::Function("reach", {Clingo::Number(agent_id), xy_reach_func, Clingo::Number(time)}));
-        // bck.rule(false, {atm}, {});
+        for (size_t i = 0; i < subg->computed_map.size(); i++)
+            for (size_t j = 0; j < subg->computed_map[i].size(); j++)
+                if (subg->computed_map[i][j] != -1)
+                {
+                    for (int a = 0; a < agent_number; a++)
+                    {
+                        for (int t = 0; t < inst->GetMksLB(agent_number) + bonus_cost; t++)
+                        {
+                            auto xy_reach_func = Clingo::Function("", {Clingo::Number(i+1), Clingo::Number(j+1)});
+                            auto atm = bck.add_atom(Clingo::Function("reach", {Clingo::Number(a), xy_reach_func, Clingo::Number(t)}));
+                            bck.rule(false, {atm}, {});
+                        }
+                    }
+                }
     }
 
     // reachability soc - TODO
