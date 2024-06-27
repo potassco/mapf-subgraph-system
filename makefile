@@ -28,7 +28,7 @@ clean:
 	rm -rf run
 
 test: $(PROJECT_NAME)
-	$(B_DIR)/$(PROJECT_NAME) -i resources/scenarios/empty08-1.scen -s c -b asp-inc-mks -a 5 -k 1 -p random
+	$(B_DIR)/$(PROJECT_NAME) -i resources/scenarios/empty08-1.scen -s c -b asp-inc-mks -a 50 -k 0 -p random
 
 valgrind: $(PROJECT_NAME)
 	valgrind --leak-check=full \
