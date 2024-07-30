@@ -31,7 +31,7 @@ int AspIncSolver::Solve(int agent_number, int bonus_cost)
 		// clingo init
 		ctl = new Clingo::Control{{"--opt-strategy=usc"}};
 		io_file_name.clear();
-		ctl->load(io_file_name.append(work_dir + "/ASP-INC/encodings/solver.lp").c_str());
+		ctl->load(io_file_name.append(work_dir + "/ASP-INC/encodings/mapf-inc2.lp").c_str());
 
 		// store the map as previous map
 		// TODO
@@ -45,13 +45,22 @@ int AspIncSolver::Solve(int agent_number, int bonus_cost)
 		return 0;
 
 	bool solved = false;
-	/*ctl->ground({{"base", {}}});
+
+    auto delta_cnum = Clingo::Number(bonus_cost);
+    auto k_cnum = Clingo::Number(0);
+
+	ctl->ground({   {"base", {}},
+                    {"time", {delta_cnum, k_cnum}},
+                    {"mapf", {k_cnum}},
+                    {"check", {delta_cnum, k_cnum}}    
+                });
+
 	for(auto& m : ctl->solve())
 	{
 		// found solution
 		cout << "found solution" << endl;
 		solved = true;
-	}*/
+	}
 
 	return ReadResults(agent_number, bonus_cost);
 }
@@ -78,6 +87,10 @@ void AspIncSolver::PrintInstance(int agent_number, int bonus_cost)
         // agent
         auto agent_atm = bck.add_atom(Clingo::Function("agent", {Clingo::Number(a)}));
         bck.rule(false, {agent_atm}, {});
+
+        // agent
+        auto horizon_atm = bck.add_atom(Clingo::Function("starting_horizon", {Clingo::Number(a), Clingo::Number(inst->SP_lengths[a])}));
+        bck.rule(false, {horizon_atm}, {});
     }
 
     // reachability mks - TODO
@@ -92,7 +105,7 @@ void AspIncSolver::PrintInstance(int agent_number, int bonus_cost)
                         for (int t = 0; t < inst->GetMksLB(agent_number) + bonus_cost; t++)
                         {
                             auto xy_reach_func = Clingo::Function("", {Clingo::Number(i+1), Clingo::Number(j+1)});
-                            auto atm = bck.add_atom(Clingo::Function("reach", {Clingo::Number(a), xy_reach_func, Clingo::Number(t)}));
+                            auto atm = bck.add_atom(Clingo::Function("reach", {Clingo::Number(a), xy_reach_func, Clingo::Number(t), Clingo::Number(0)}));
                             bck.rule(false, {atm}, {});
                         }
                     }
