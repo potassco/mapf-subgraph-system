@@ -14,7 +14,7 @@ OBJ = $(patsubst %,$(O_DIR)/%,$(_OBJ))
 
 $(PROJECT_NAME): $(OBJ)
 	mkdir -p $(B_DIR)
-	$(CC) $(CFLAGS) -o $(B_DIR)/$@ $^ -lstdc++fs -lclingo
+	$(CC) $(CFLAGS) -o $(B_DIR)/$@ $^ -lstdc++fs -L./solvers/ASP-INC -lclingo
 
 $(O_DIR)/%.o: $(S_DIR)/%.cpp $(DEPS) | $(O_DIR)_exists
 	$(CC) $(CFLAGS) -c -o $@ $<
