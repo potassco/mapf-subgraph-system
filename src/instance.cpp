@@ -54,6 +54,7 @@ void Instance::LoadAgents(string agents_path, string map_dir)
 
 	mks_LBs = vector<int>(agents.size() + 1, -1);
 	soc_LBs = vector<int>(agents.size() + 1, -1);
+	SP_lengths = vector<int>(agents.size() + 1, -1);
 
 	in.close();
 }
@@ -108,7 +109,7 @@ void Instance::ComputeShortestPaths(int number_of_agents_to_compute)
 		BFS(length_from_start[i], agents[i].start);
 		BFS(length_from_goal[i], agents[i].goal);
 
-		SP_lengths.push_back(length_from_start[i][map[agents[i].goal.x][agents[i].goal.y]]);
+		SP_lengths[i] = length_from_start[i][map[agents[i].goal.x][agents[i].goal.y]];
 
 		agents_to_process.push_back(make_pair(make_pair(agents[i].start.x + 1, agents[i].start.y + 1),make_pair(agents[i].goal.x + 1, agents[i].goal.y + 1)));
 	}

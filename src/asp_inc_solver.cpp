@@ -4,19 +4,21 @@ using namespace std;
 
 void AspIncSolver::ResetStat(int to)
 {
+    // specific for inc ASP
 	if (ctl != NULL)
 		delete ctl;
+    added_timesteps.clear();
+
+    // shared
 	timeout = to;
 	total_runtime = 0;
 	total_solvertime = 0;
 
 	solver_call = 0;
-	first_time = true;
 
 	variables_vc.clear();
 	constraints_vc.clear();
 }
-
 
 int AspIncSolver::Solve(int agent_number, int bonus_cost)
 {
@@ -26,17 +28,16 @@ int AspIncSolver::Solve(int agent_number, int bonus_cost)
 	stat_file_name = "statistics/asp_results.res";
 	solver_call++;
 
-	if (first_time)
+	if (solver_call == 1)
 	{
 		// clingo init
-		ctl = new Clingo::Control{{"--opt-strategy=usc"}};
+		ctl = new Clingo::Control{{"--opt-strategy=usc", "--warn=none"}};
 		io_file_name.clear();
 		ctl->load(io_file_name.append(work_dir + "/ASP-INC/encodings/mapf-inc2.lp").c_str());
-
-		// store the map as previous map
-		// TODO
-
-		first_time = false;
+        io_file_name.clear();
+        ctl->load(io_file_name.append(work_dir + "/ASP-INC/encodings/soc-bound.lp").c_str());
+        CreateInitialInstance(agent_number);
+        added_timesteps = vector<vector<AtomInfo> >(agent_number, vector<AtomInfo>(inst->number_of_vertices, {-1,-2}));
 	}
 
 	PrintInstance(agent_number, bonus_cost);
@@ -44,30 +45,22 @@ int AspIncSolver::Solve(int agent_number, int bonus_cost)
 	if (no_solve) // do not call solver, just assume success
 		return 0;
 
-	bool solved = false;
-
-    auto delta_cnum = Clingo::Number(bonus_cost);
-    auto k_cnum = Clingo::Number(0);
-
-	ctl->ground({   {"base", {}},
-                    {"time", {delta_cnum, k_cnum}},
-                    {"mapf", {k_cnum}},
-                    {"check", {delta_cnum, k_cnum}}    
-                });
-
-	for(auto& m : ctl->solve())
+	solved = false;
+	for(auto& m : ctl->solve((Clingo::SymbolicLiteralSpan)assumptions_vector))
 	{
 		// found solution
-		cout << "found solution" << endl;
+		//cout << "found solution" << endl;
 		solved = true;
+        //for(auto& a : m.symbols(Clingo::ShowType::Shown))
+        //    cout << a.to_string() << endl;
 	}
 
 	return ReadResults(agent_number, bonus_cost);
 }
 
-void AspIncSolver::PrintInstance(int agent_number, int bonus_cost)
+void AspIncSolver::CreateInitialInstance(int agent_number)
 {
-	Clingo::Backend bck = ctl->backend();
+    Clingo::Backend bck = ctl->backend();
 
 	// add all terms
 
@@ -88,72 +81,61 @@ void AspIncSolver::PrintInstance(int agent_number, int bonus_cost)
         auto agent_atm = bck.add_atom(Clingo::Function("agent", {Clingo::Number(a)}));
         bck.rule(false, {agent_atm}, {});
 
-        // agent
-        auto horizon_atm = bck.add_atom(Clingo::Function("starting_horizon", {Clingo::Number(a), Clingo::Number(inst->SP_lengths[a])}));
-        bck.rule(false, {horizon_atm}, {});
-    }
-
-    // reachability mks - TODO
-    if (!name.compare("makespan-inc"))
-    {
-        for (size_t i = 0; i < subg->computed_map.size(); i++)
-            for (size_t j = 0; j < subg->computed_map[i].size(); j++)
-                if (subg->computed_map[i][j] != -1)
-                {
-                    for (int a = 0; a < agent_number; a++)
-                    {
-                        for (int t = 0; t < inst->GetMksLB(agent_number) + bonus_cost; t++)
-                        {
-                            auto xy_reach_func = Clingo::Function("", {Clingo::Number(i+1), Clingo::Number(j+1)});
-                            auto atm = bck.add_atom(Clingo::Function("reach", {Clingo::Number(a), xy_reach_func, Clingo::Number(t), Clingo::Number(0)}));
-                            bck.rule(false, {atm}, {});
-                        }
-                    }
-                }
-    }
-
-    // reachability soc - TODO
-    if (!name.compare("soc-inc"))
-    {
-        
+        // agent horizon
+        if (!name.compare("mks"))  // mks
+        {
+            auto horizon_atm = bck.add_atom(Clingo::Function("starting_horizon", {Clingo::Number(a), Clingo::Number(inst->GetMksLB(agent_number))}));
+            bck.rule(false, {horizon_atm}, {});
+        }
+        if (!name.compare("soc"))       // soc
+        {
+            auto horizon_atm = bck.add_atom(Clingo::Function("starting_horizon", {Clingo::Number(a), Clingo::Number(inst->SP_lengths[a])}));
+            bck.rule(false, {horizon_atm}, {});
+        }
     }
 
     // vertices, edges
-    for (size_t i = 0; i < subg->computed_map.size(); i++)
-        for (size_t j = 0; j < subg->computed_map[i].size(); j++)
-            if (subg->computed_map[i][j] != -1)
+    for (size_t i = 0; i < inst->map.size(); i++)
+        for (size_t j = 0; j < inst->map[i].size(); j++)
+            if (inst->map[i][j] != -1)
             {
                 auto xy_func = Clingo::Function("", {Clingo::Number(i+1), Clingo::Number(j+1)});
                 auto atm = bck.add_atom(Clingo::Function("vertex", {xy_func}));
                 bck.rule(false, {atm}, {});
             }
 
-    for (size_t i = 0; i < subg->computed_map.size(); i++)
+    for (size_t i = 0; i < inst->map.size(); i++)
     {
-        for (size_t j = 0; j < subg->computed_map[i].size(); j++)
+        for (size_t j = 0; j < inst->map[i].size(); j++)
         {
-            if (subg->computed_map[i][j] == -1)
+            if (inst->map[i][j] == -1)
                 continue;
             auto xy_func_from = Clingo::Function("", {Clingo::Number(i+1), Clingo::Number(j+1)});
-            if (i > 0 && subg->computed_map[i-1][j] != -1)
+            
+            /*{   // selfloop
+                auto xy_func_to = Clingo::Function("", {Clingo::Number(i+1), Clingo::Number(j+1)});
+                auto atm = bck.add_atom(Clingo::Function("edge", {xy_func_from, xy_func_to}));
+                bck.rule(false, {atm}, {});
+            }*/
+            if (i > 0 && inst->map[i-1][j] != -1)
             {
                 auto xy_func_to = Clingo::Function("", {Clingo::Number(i), Clingo::Number(j+1)});
                 auto atm = bck.add_atom(Clingo::Function("edge", {xy_func_from, xy_func_to}));
                 bck.rule(false, {atm}, {});
             }
-            if (i < subg->computed_map.size() - 1 && subg->computed_map[i+1][j] != -1)
+            if (i < inst->map.size() - 1 && inst->map[i+1][j] != -1)
             {
                 auto xy_func_to = Clingo::Function("", {Clingo::Number(i+2), Clingo::Number(j+1)});
                 auto atm = bck.add_atom(Clingo::Function("edge", {xy_func_from, xy_func_to}));
                 bck.rule(false, {atm}, {});
             }
-            if (j > 0 && subg->computed_map[i][j-1] != -1)
+            if (j > 0 && inst->map[i][j-1] != -1)
             {
                 auto xy_func_to = Clingo::Function("", {Clingo::Number(i+1), Clingo::Number(j)});
                 auto atm = bck.add_atom(Clingo::Function("edge", {xy_func_from, xy_func_to}));
                 bck.rule(false, {atm}, {});
             }
-            if (j < subg->computed_map[i].size() - 1 && subg->computed_map[i][j+1] != -1)
+            if (j < inst->map[i].size() - 1 && inst->map[i][j+1] != -1)
             {
                 auto xy_func_to = Clingo::Function("", {Clingo::Number(i+1), Clingo::Number(j+2)});
                 auto atm = bck.add_atom(Clingo::Function("edge", {xy_func_from, xy_func_to}));
@@ -161,202 +143,207 @@ void AspIncSolver::PrintInstance(int agent_number, int bonus_cost)
             }
         }
     }
+
+    ctl->ground({{"base", {}}});
+}
+
+void AspIncSolver::PrintInstance(int agent_number, int bonus_cost)
+{
+	Clingo::Backend bck = ctl->backend();
+    assumptions_vector.clear();
+
+    // vertex is not in the subgraph, check if it was reachable before
+    for (size_t i = 0; i < subg->computed_map.size(); i++)
+    {
+        for (size_t j = 0; j < subg->computed_map[i].size(); j++)
+        {
+            if (subg->computed_map[i][j] == -1 && inst->map[i][j] != -1)
+            {
+                int v_ID = inst->map[i][j];
+                for (int a = 0; a < agent_number; a++)
+                {
+                    for (int t = added_timesteps[a][v_ID].first_timestep; t <= added_timesteps[a][v_ID].last_timestep; t++)
+                    {
+                        auto xy_reach_func = Clingo::Function("", {Clingo::Number(i+1), Clingo::Number(j+1)});
+                        Clingo::SymbolicLiteral lit(Clingo::Function("at", {Clingo::Number(a), xy_reach_func, Clingo::Number(t)}), false);
+                        assumptions_vector.push_back(lit);
+
+                        cout << "remove agent " << a << " in " << i << ", " << j << " at timestep " << t << endl;
+                    }
+                }
+            }
+        }
+    }
+
+    for (size_t i = 0; i < subg->computed_map.size(); i++)
+    {
+        for (size_t j = 0; j < subg->computed_map[i].size(); j++)
+        {
+            // vertex is in the subgraph, add it as reachable
+            if (subg->computed_map[i][j] != -1)
+            {
+                for (int a = 0; a < agent_number; a++)
+                {
+                    int max_t = 0;
+                    if (!name.compare("mks"))
+                        max_t = inst->GetMksLB(agent_number) + bonus_cost;
+                    if (!name.compare("soc"))
+                        max_t = inst->SP_lengths[a] + bonus_cost;
+
+                    vector<pair<int,int> > vc = GetTRange(agent_number, bonus_cost, a, {int(i), int(j)}, max_t, bonus_cost);
+
+                    for (size_t part = 0; part < vc.size(); part++)
+                    {
+                        for (int t = vc[part].first; t <= vc[part].second; t++)
+                        //for (int t = 0; t <= max_t; t++)
+                        {
+                            auto xy_reach_func = Clingo::Function("", {Clingo::Number(i+1), Clingo::Number(j+1)});
+                            auto atm = bck.add_atom(Clingo::Function("reach", {Clingo::Number(a), xy_reach_func, Clingo::Number(t), Clingo::Number(solver_call-1)}));
+                            bck.rule(false, {atm}, {});
+
+                            cout << "add agent " << a << " in " << i << ", " << j << " at timestep " << t << endl;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    auto delta_cnum = Clingo::Number(bonus_cost);
+    auto k_cnum = Clingo::Number(solver_call-1);
+
+	ctl->ground({
+                    {"time", {delta_cnum, k_cnum}},
+                    {"mapf", {k_cnum}},
+                    {"check", {delta_cnum, k_cnum}}
+                });
+    
+    if (!name.compare("soc"))
+        ctl->ground({
+                        {"optimize", {delta_cnum, k_cnum}},
+                    });
+
 }
 
 int AspIncSolver::ReadResults(int agent_number, int bonus_cost)
 {
 	// stats
 	auto stat = ctl->statistics();
-	/*total_calls_ += 1;
-	total_time_ += ctl.statistics()["summary"]["times"]["total"];
-	total_solve_time_ += ctl.statistics()["summary"]["times"]["solve"];
-	total_choices_ += ctl.statistics()["solving"]["solvers"]["choices"];
-	total_conflicts_ += ctl.statistics()["solving"]["solvers"]["conflicts"];*/
 
-    cout << ctl->statistics()["summary"]["times"]["total"] << endl;
-    cout << ctl->statistics()["summary"]["times"]["solve"] << endl;
-    cout << ctl->statistics()["solving"]["solvers"]["choices"] << endl;
-    cout << ctl->statistics()["solving"]["solvers"]["conflicts"] << endl;
+    float solver_time = stat["summary"]["times"]["solve"];
+	float total_time = stat["summary"]["times"]["total"];
+    variables_vc.push_back(stat["problem"]["generator"]["vars"]);
+    constraints_vc.push_back(stat["problem"]["generator"]["constraints"]);
+
+    total_runtime += total_time;
+    total_solvertime += solver_time;
+    timeout -= total_time;
+
+    if (timeout < 0)
+        return 1;
+
+    if (!solved)
+        return -1;
+
+    ofstream output;
+    output.open(stat_file_name, ios::app);
+    if (output.is_open())
+    {
+        output << "asp-inc" << "\t"
+            << inst->agents_file << "\t"
+            << inst->path_type << "\t"
+            << name << "\t"
+            << alg << "\t"
+            << agent_number << "\t"
+            << inst->number_of_vertices << "\t"
+            << inst->GetMksLB(agent_number) << "\t"
+            << inst->GetSocLB(agent_number) << "\t"
+            << subg->GiveNewNumbering() << "\t"
+            << bonus_cost << "\t"
+            << inst->path_compute_time << "\t"
+            << int(1000*total_solvertime) << "\t"
+            << int(1000*total_runtime) << "\t"
+            << solver_call << "\t"
+            // variables
+            << accumulate(variables_vc.begin(), variables_vc.end(), 0) << "\t"
+            // constraints
+            << accumulate(constraints_vc.begin(), constraints_vc.end(), 0) << "\t"
+            << endl;
+
+        output.close();
+    }
+    else
+        cout << "Could not open results file!" << endl;
 
 	return 0;
 }
 
+vector<pair<int,int> > AspIncSolver::GetTRange(int agent_number, int bonus_cost, int a, Vertex v, int max_t, int k)
+{
+    int v_ID = inst->map[v.x][v.y];
+    int earliest = inst->length_from_start[a][v_ID];
+    int first_timestep_used = added_timesteps[a][v_ID].first_timestep;
+    int latest = max_t - inst->length_from_goal[a][v_ID];
+    int last_timestep_used = added_timesteps[a][v_ID].last_timestep;
 
+    vector<pair<int,int> > return_vc;
 
-
-
-/*
-
-void MAPFPlanner::add_instance(Clingo::Backend& bck, unsigned int delta){
-    
-    std::unordered_set<Node*> vertices;
-    std::unordered_map <unsigned int, std::unordered_set<Node*> > agent_vertices;
-    std::unordered_map<Node*,std::unordered_set<Node*>> edges;
-
-    for (int agent_id = 0; agent_id < env->num_of_agents; agent_id++){
-        directional_pos start = get_start(agent_id);
-        directional_pos goal = get_goal(agent_id);
-
-        // add start, goal and agent facts
-        auto start_xy = map.deserialize_2d(start.first);
-        auto xy_func = Clingo::Function("", {Clingo::Number(start_xy.first), Clingo::Number(start_xy.second)});
-        auto dir_start = Clingo::Function("", {xy_func, Clingo::Number(start.second)});
-
-        auto start_atm = bck.add_atom(Clingo::Function("start", {Clingo::Number(agent_id), dir_start}));
-
-        // goal
-        auto goal_xy = map.deserialize_2d(start.first);
-        auto gxy_func = Clingo::Function("", {Clingo::Number(goal_xy.first), Clingo::Number(goal_xy.second)});
-        auto dir_goal = Clingo::Function("", {gxy_func, Clingo::Number(start.second)});
-
-        auto goal_atm = bck.add_atom(Clingo::Function("goal", {Clingo::Number(agent_id), dir_goal}));
-
-        // agent
-        auto agent_atm = bck.add_atom(Clingo::Function("agent", {Clingo::Number(agent_id)}));
-
-        // add facts
-        bck.rule(false, {start_atm}, {});
-        bck.rule(false, {goal_atm}, {});
-        bck.rule(false, {agent_atm}, {});
-
-        // Add reach atoms for each agent
-        auto reach = map.reachable_nodes_within_distance(PLAN_DIST, get_horizon(agent_id)+delta, start, goal);
-        for (int time = 0 ; time < reach.size() ; time++){
-            for (Node* node : reach[time]){
-                agent_vertices[agent_id].insert(node);
-
-                auto vertex = map.deserialize_2d(node->name.first);
-                auto xy_reach_func = Clingo::Function("", {Clingo::Number(vertex.first), Clingo::Number(vertex.second)});
-                auto dir_reach = Clingo::Function("", {xy_reach_func, Clingo::Number(node->name.second)});
-                
-                // reach atom
-                auto atm = bck.add_atom(Clingo::Function("reach", {Clingo::Number(agent_id), dir_reach, Clingo::Number(time)}));
-                bck.rule(false, {atm}, {});
-
-                vertices.insert(node);
-                std::vector<Node*> neighbors = node->out;
-                neighbors.push_back(node);
-                for (Node* neighbor : neighbors){
-                    // if we are not in the last step and the neighbor is reachable in the next step
-                    if (time < reach.size() - 1 &&  reach[time+1].count(neighbor) == 1){
-                        if (edges.count(node) == 0){
-                            edges[node] = std::unordered_set<Node*>();
-                        }
-                        edges[node].insert(neighbor);
-                    }
-                }
+    if (!name.compare("soc"))   // the vertex is someone's goal, it is not reachable after they reach it
+    {
+        bool is_goal = false;
+        for (int other_ag = 0; other_ag < agent_number; other_ag++)
+        {
+            if (other_ag == a)
+                continue;
+            if (inst->agents[other_ag].goal == v)
+            {
+                latest = min(inst->SP_lengths[other_ag] + bonus_cost - 1, latest);
+                cout << "there is an agent in " << v.x << ", " << v.y << endl;
             }
         }
     }
-    // now we add atoms for node and edge
-    for (Node* node : vertices){
-        auto vertex = map.deserialize_2d(node->name.first);
-        
-        auto xy_func = Clingo::Function("", {Clingo::Number(vertex.first), Clingo::Number(vertex.second)});
-        auto dir_vertex = Clingo::Function("", {xy_func, Clingo::Number(node->name.second)});
 
-
-        auto atm = bck.add_atom(Clingo::Function("vertex", {dir_vertex}));
-        bck.rule(false, {atm}, {});
+    if (earliest > latest)  // the vertex is not reachable
+    {
+        return return_vc;
     }
 
-    for ( auto& [agent_id, vertices] : agent_vertices){
-        for (Node* node : vertices){
-            auto vertex = map.deserialize_2d(node->name.first);
-            
-            auto xy_func = Clingo::Function("", {Clingo::Number(vertex.first), Clingo::Number(vertex.second)});
-            auto dir_vertex = Clingo::Function("", {xy_func, Clingo::Number(node->name.second)});
+    if (first_timestep_used == -1)   // this vertex is being added for the first time
+    {
+        added_timesteps[a][v_ID].first_timestep = earliest;
+        added_timesteps[a][v_ID].last_timestep = latest;
 
-            unsigned int dist = map.distance_between(get_goal(agent_id), node->name);
-
-            auto atm = bck.add_atom(Clingo::Function("dist", {Clingo::Number(agent_id),dir_vertex, Clingo::Number(dist)}));
-            bck.rule(false, {atm}, {});
-        }
+        return_vc.push_back({earliest, latest});
+        cout << "agent " << a << " is in " << v.x << ", " << v.y << " from " << earliest << " to " << latest << endl;
+        return return_vc;
     }
-    
-    for (auto& [nodefrom, nodeto_vec] : edges){
-        auto vertex_from = map.deserialize_2d(nodefrom->name.first);
-        auto xy_func_from = Clingo::Function("", {Clingo::Number(vertex_from.first), Clingo::Number(vertex_from.second)});
-        auto dir_func_from = Clingo::Function("", {xy_func_from, Clingo::Number(nodefrom->name.second)});
 
-        for ( auto& nodeto : nodeto_vec){
-            auto vertex_to = map.deserialize_2d(nodeto->name.first);
-            auto xy_func_to = Clingo::Function("", {Clingo::Number(vertex_to.first), Clingo::Number(vertex_to.second)});
-            auto dir_func_to = Clingo::Function("", {xy_func_to, Clingo::Number(nodeto->name.second)});
-
-            auto atm = bck.add_atom(Clingo::Function("edge", {dir_func_from, dir_func_to}));
-            bck.rule(false, {atm}, {});
-        }
+    if (first_timestep_used < earliest)
+    {
+        cout << "this should not happen" << endl;
+        return return_vc;
     }
+
+    if (last_timestep_used > latest)
+    {
+        cout << "this should not happen" << endl;
+        return return_vc;
+    }
+
+    if (first_timestep_used > earliest) // should not happen with the current strategies
+    {
+        cout << "this should not happen with the current strategies" << endl;
+        added_timesteps[a][v_ID].first_timestep = earliest;
+        return_vc.push_back({earliest, first_timestep_used-1});
+    }
+
+    if (last_timestep_used < latest)
+    {
+        added_timesteps[a][v_ID].last_timestep = latest;
+        return_vc.push_back({last_timestep_used + 1, latest});
+
+        cout << "agent " << a << " is in " << v.x << ", " << v.y << " from " << last_timestep_used + 1 << " to " << latest << endl;
+    }
+
+    return return_vc;
 }
-
-void MAPFPlanner::solve(){
-
-    std::unordered_map< unsigned int, std::vector<directional_pos> > positions;
-
-    for (int i = 0; i < PLAN_DIST+1; i++){
-        positions[i] = std::vector<directional_pos>(env->curr_states.size(), std::pair(0,Orientation(0)));
-    }
-
-    bool model_found = false;
-    unsigned int delta = STARTING_DELTA;
-
-    while (!model_found){
-        Clingo::Control ctl{{"--opt-strategy=usc"}};
-        Clingo::Backend bck = ctl.backend();
-
-        add_instance(bck, delta);
-
-        // add the encoding
-        ctl.load("encodings/paths-turns-soc-fixed.lp");
-
-        ctl.ground({{"base", {}}});
-        for(auto& m : ctl.solve()){
-            std::cout << "model found! Final delta is: " << delta << endl;
-            // set to true to get out of the loop
-            model_found = true;
-
-            for(auto& atom : m.symbols()){
-                // std::cout << atom << " ";
-                if ( atom.match("at", 3) ){
-                    // could only get the rest if time == 1 (the first move)
-                    int time = atom.arguments()[2].number();
-                    int agent_id = atom.arguments()[0].number();
-                    int x = atom.arguments()[1].arguments()[0].arguments()[0].number();
-                    int y = atom.arguments()[1].arguments()[0].arguments()[1].number();
-                    int dir = atom.arguments()[1].arguments()[1].number();
-
-                    positions[time][agent_id] =  std::make_pair(map.serialize_2d(x,y), Orientation(dir));                    
-                    
-                }
-            }
-        }
-        // std::cout << endl;
-        delta += 1;
-
-        // stats
-        total_calls_ += 1;
-        total_time_ += ctl.statistics()["summary"]["times"]["total"];
-        total_solve_time_ += ctl.statistics()["summary"]["times"]["solve"];
-        total_choices_ += ctl.statistics()["solving"]["solvers"]["choices"];
-        total_conflicts_ += ctl.statistics()["solving"]["solvers"]["conflicts"];
-    }
-
-    // populate the moves vector
-    for (int time = 0; time < PLAN_KEEP; time++){
-        std::vector<Action> actions = std::vector<Action>(env->curr_states.size(), Action::W);
-        for (int agent_id = 0; agent_id < env->curr_states.size(); agent_id++){
-            actions[agent_id] = convert_action(positions[time][agent_id], positions[time+1][agent_id]);
-        }
-        computed_plans_.push_back(actions);
-    }
-
-    std::cout << "total calls: " << total_calls_ << std::endl;
-    std::cout << "total time: " << total_time_ << std::endl;
-    std::cout << "total solve time: " << total_solve_time_ << std::endl;
-    std::cout << "total choices: " << total_choices_ << std::endl;
-    std::cout << "total conflicts: " << total_conflicts_ << std::endl;
-
-}
-
-*/

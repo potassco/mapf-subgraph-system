@@ -55,13 +55,13 @@ Strategy::Strategy(bool debug, bool no_solve, bool os, char c, string af, string
 	if (bs.compare("asp-inc-mks") == 0)
 	{
 		sol = new AspIncSolver(debug, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
-		sol->name = "makespan-inc";
+		sol->name = "mks";
 	}
 
 	if (bs.compare("asp-inc-soc") == 0)
 	{
 		sol = new AspIncSolver(debug, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
-		sol->name = "soc-inc";
+		sol->name = "soc";
 		subg->soc = true;
 	}
 

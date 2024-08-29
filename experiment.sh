@@ -1,12 +1,12 @@
 #!/bin/bash
 
-timeout=300
+timeout=60
 
-for instance in resources/scenarios/*
+for instance in resources/scenarios/random16-1.scen
 do
-	for alg in asp-mks
+	for alg in asp-inc-soc
 	do
-		for strategy in p
+		for strategy in b m p c
 		do
 			for path in biased
 			do

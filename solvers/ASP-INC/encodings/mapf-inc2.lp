@@ -121,15 +121,15 @@ backward_has_position(A,T,k) :- backward_has_position(A,T,k+1).
 :- goal(A,V), not at(A,V,T+delta), starting_horizon(A,T), query(k).
 
 #show.
-#show agent/1.
-#show start/2.
+% #show agent/1.
+% #show start/2.
 #show at/3.
-#show reach_edge/5.
-#show move/4.
-#show time/2.
-#show reach/4.
+% #show reach_edge/5.
+% #show move/4.
+% #show time/2.
+% #show reach/4.
 #defined reach/4.
-#show moved/3.
-#show forward_move/3.
+% #show moved/3.
+% #show forward_move/3.
 
-#show starting_horizon/2.
+% #show starting_horizon/2.

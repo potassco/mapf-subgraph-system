@@ -31,8 +31,6 @@ int AspSolver::Solve(int agent_number, int bonus_cost)
 	if (no_solve) // do not call solver, just assume success
 		return 0;
 
-	cout << exec.str() << endl;
-
 	int ret = system(exec.str().c_str());
 
 	if (ret != 0)
@@ -173,6 +171,8 @@ int AspSolver::ReadResults(int agent_number, int bonus_cost)
 		total_solvertime += solver_time;
 		timeout -= total_time;
 
+		string cost_function = (!name.compare("soc-iter")) ? "soc" : "mks";
+
 		if (solution_found)
 		{
 			ofstream output;
@@ -182,7 +182,7 @@ int AspSolver::ReadResults(int agent_number, int bonus_cost)
 				output << "asp" << "\t"
 					<< inst->agents_file << "\t"
 					<< inst->path_type << "\t"
-					<< name << "\t"
+					<< cost_function << "\t"
 					<< alg << "\t"
 					<< agent_number << "\t"
 					<< inst->number_of_vertices << "\t"
