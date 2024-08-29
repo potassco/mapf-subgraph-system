@@ -2,9 +2,9 @@
 
 timeout=60
 
-for instance in resources/scenarios/random16-1.scen
+for instance in resources/scenarios/random*
 do
-	for alg in asp-inc-soc
+	for alg in asp-inc-soc asp-soc
 	do
 		for strategy in b m p c
 		do

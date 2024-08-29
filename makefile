@@ -28,7 +28,7 @@ clean:
 	rm -rf run
 
 test: $(PROJECT_NAME)
-	$(B_DIR)/$(PROJECT_NAME) -i test4.scen -s p -b asp-inc-soc -a 2 -k 0 -p biased
+	$(B_DIR)/$(PROJECT_NAME) -i random08-5.scen -s b -b asp-soc -a 15 -k 0 -p biased
 
 valgrind: $(PROJECT_NAME)
 	valgrind --leak-check=full \

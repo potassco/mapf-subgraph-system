@@ -168,7 +168,7 @@ void AspIncSolver::PrintInstance(int agent_number, int bonus_cost)
                         Clingo::SymbolicLiteral lit(Clingo::Function("at", {Clingo::Number(a), xy_reach_func, Clingo::Number(t)}), false);
                         assumptions_vector.push_back(lit);
 
-                        cout << "remove agent " << a << " in " << i << ", " << j << " at timestep " << t << endl;
+                        //cout << "remove agent " << a << " in " << i << ", " << j << " at timestep " << t << endl;
                     }
                 }
             }
@@ -195,13 +195,12 @@ void AspIncSolver::PrintInstance(int agent_number, int bonus_cost)
                     for (size_t part = 0; part < vc.size(); part++)
                     {
                         for (int t = vc[part].first; t <= vc[part].second; t++)
-                        //for (int t = 0; t <= max_t; t++)
                         {
                             auto xy_reach_func = Clingo::Function("", {Clingo::Number(i+1), Clingo::Number(j+1)});
                             auto atm = bck.add_atom(Clingo::Function("reach", {Clingo::Number(a), xy_reach_func, Clingo::Number(t), Clingo::Number(solver_call-1)}));
                             bck.rule(false, {atm}, {});
 
-                            cout << "add agent " << a << " in " << i << ", " << j << " at timestep " << t << endl;
+                            //cout << "add agent " << a << " in " << i << ", " << j << " at timestep " << t << endl;
                         }
                     }
                 }
@@ -296,10 +295,7 @@ vector<pair<int,int> > AspIncSolver::GetTRange(int agent_number, int bonus_cost,
             if (other_ag == a)
                 continue;
             if (inst->agents[other_ag].goal == v)
-            {
                 latest = min(inst->SP_lengths[other_ag] + bonus_cost - 1, latest);
-                cout << "there is an agent in " << v.x << ", " << v.y << endl;
-            }
         }
     }
 
@@ -314,7 +310,6 @@ vector<pair<int,int> > AspIncSolver::GetTRange(int agent_number, int bonus_cost,
         added_timesteps[a][v_ID].last_timestep = latest;
 
         return_vc.push_back({earliest, latest});
-        cout << "agent " << a << " is in " << v.x << ", " << v.y << " from " << earliest << " to " << latest << endl;
         return return_vc;
     }
 
@@ -341,8 +336,6 @@ vector<pair<int,int> > AspIncSolver::GetTRange(int agent_number, int bonus_cost,
     {
         added_timesteps[a][v_ID].last_timestep = latest;
         return_vc.push_back({last_timestep_used + 1, latest});
-
-        cout << "agent " << a << " is in " << v.x << ", " << v.y << " from " << last_timestep_used + 1 << " to " << latest << endl;
     }
 
     return return_vc;
