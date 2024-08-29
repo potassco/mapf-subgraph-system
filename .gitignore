@@ -6,5 +6,5 @@ statistics/*log
 .vscode
 TODO
 valgrind-out.txt
-# resources/test*
+# resources/scenarios/test*
 # resources/maps/*test*

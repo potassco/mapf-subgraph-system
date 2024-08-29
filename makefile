@@ -28,7 +28,7 @@ clean:
 	rm -rf run
 
 test: $(PROJECT_NAME)
-	$(B_DIR)/$(PROJECT_NAME) -i resources/test_scenarios/random16-1.scen -s m -b asp-inc-soc -a 2 -k 0 -p biased
+	$(B_DIR)/$(PROJECT_NAME) -i test4.scen -s p -b asp-inc-soc -a 2 -k 0 -p biased
 
 valgrind: $(PROJECT_NAME)
 	valgrind --leak-check=full \
@@ -36,7 +36,7 @@ valgrind: $(PROJECT_NAME)
 	--track-origins=yes \
 	--verbose \
 	--log-file=valgrind-out.txt \
-	$(B_DIR)/$(PROJECT_NAME) -i resources/scenarios/empty08-1.scen -s c -b asp-mks -a 5 -k 0 -p random
+	$(B_DIR)/$(PROJECT_NAME) -i empty08-1.scen -s c -b asp-mks -a 5 -k 0 -p random
 
 experiment: $(PROJECT_NAME)
 	sh experiment.sh
