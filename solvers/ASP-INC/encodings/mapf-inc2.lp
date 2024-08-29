@@ -55,7 +55,7 @@ reach_edgek(A,U,V,T,k) :- reach_edgek(A,U,V,T,k-1).
 #external move(A,U,V,T) : agent(A), edge(U,V), not reach_edge(A,U,V,T,k), reach(A,U,T-1,k). [false]
 
 %incoming moves are needed if a position can come again later from a different place
-#external move(A,U,V,T) : agent(A), edge(U,V), not reach_edge(A,U,V,T,k), reach(A,V,T-1,k). [false]
+#external move(A,U,V,T) : agent(A), edge(U,V), not reach_edge(A,U,V,T,k), reach(A,V,T,k). [false]
 
 
 % choice for possible moves
