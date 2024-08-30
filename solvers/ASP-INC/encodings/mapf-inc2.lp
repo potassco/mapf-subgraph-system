@@ -8,9 +8,9 @@
 % set horizon of each agent based on objective
 delta_k(delta,k).
 %time(A,1..N+delta) :- agent(A), starting_horizon(A,N), k = 0.
-newtime(A,1..N+delta,k) :- starting_horizon(A,N), k = 0.
+newtime(A,0..N+delta,k) :- starting_horizon(A,N), k = 0.
 newtime(A,N+PrevDelta+1..N+delta,k) :- agent(A), starting_horizon(A,N), k > 0, delta_k(PrevDelta,k-1).
-time(A,T) :- newtime(A,T,k).
+time(A,T) :- newtime(A,T,k), T > 0.
 
 % #external backward_has_position(A,1..N+delta,k) : starting_horizon(A,N), k=0.
 % :- not backward_has_position(A,1..N+delta,k), starting_horizon(A,N), k=0.
