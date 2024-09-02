@@ -1,10 +1,10 @@
 #!/bin/bash
 
-timeout=60
+timeout=100
 
-for instance in resources/scenarios/random*
+for instance in resources/scenarios/*
 do
-	for alg in asp-inc-soc asp-soc
+	for alg in asp-mks asp-soc asp-inc-mks asp-inc-soc
 	do
 		for strategy in b m p c
 		do
