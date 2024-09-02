@@ -4,10 +4,10 @@ This is an implementation of graph pruning strategies and shortest paths choices
 
 ## Contents
 
-- `./encodings` contains the encodings of the ASP-based solver.
 - `./resources` contains the scenario and map files used.
+- `./solvers` contains the encodings of the ASP-based solver and the SAT-based solver.
 - `./src` contains the source codes in C++ for the strategy framework.
-- `./statistics/results.xlsx` contains the measured results used in the paper.
+- `./statistics` contains the measured results.
 - `./experiment.sh` a script that solves all of the included instances using all of the possible combinations of strategies and underlying solvers.
 - `./makefile` a makefile provided for easy compilation and experiment execution.
 
@@ -47,7 +47,7 @@ To solve a single instance, call the framework via
 	-d                  : debug print - keep all of the used instance and output files
 	-n                  : do not call solver, only print instance in given format
 	-o                  : oneshot solve, do not perform any subsequent calls
-	-b base_algorithm   : base algorithm to be used. Available options are asp-mks|asp-soc|sat-mks|sat-soc
+	-b base_algorithm   : base algorithm to be used. Available options are asp-mks asp-soc asp-inc-mks asp-inc-soc sat-mks sat-soc
 	-i agents_file      : path to an agents file
 	-s strategy         : strategy to be used. Available options are b|m|p|c
 	-t timeout          : timeout of the computation in s. Default value is 300s
@@ -60,3 +60,4 @@ To solve all of the included scenario files, call `make experiment`. The result 
 
 ## References
 
+If you use our system, please cite [this](https://dblp.org/rec/conf/atal/HusarSOBS22.html) paper.

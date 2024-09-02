@@ -17,7 +17,7 @@ public:
 
 	std::vector<std::vector<int> > computed_map;
 	std::vector<std::vector<std::vector<int> > > individual_maps;
-	std::vector<std::vector<std::vector<std::vector<int> > > > time_expanded_graph;
+	// std::vector<std::vector<std::vector<std::vector<int> > > > time_expanded_graph;
 
 	int vertices;
 	bool soc;

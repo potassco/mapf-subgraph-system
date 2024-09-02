@@ -9,6 +9,8 @@
 using namespace std;
 namespace fs = std::experimental::filesystem;
 
+vector<string> solver_names = {"asp-mks","asp-soc","asp-inc-mks","asp-inc-soc","sat-mks","sat-soc"};
+
 void printHelp(char**);
 
 int main(int argc, char** argv) 
@@ -106,8 +108,16 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
-	if (string(bvalue).compare("asp-mks") != 0 && string(bvalue).compare("asp-soc") != 0 &&
-		string(bvalue).compare("sat-mks") != 0 && string(bvalue).compare("sat-soc") != 0)
+	bool ok_name = false;
+	for (size_t n = 0; n < solver_names.size(); n++)
+	{
+		if (string(bvalue).compare(solver_names[n]) == 0)
+		{
+			ok_name = true;
+			break;
+		}
+	}
+	if (!ok_name)
 	{
 		cout << "Unknown base algorithm \"" << bvalue << "\"!" << endl;
 		printHelp(argv);
@@ -152,7 +162,9 @@ void printHelp(char* argv[])
 	cout << "	-d                  : debug print - keep all of the used instance and output files" << endl;
 	cout << "	-n                  : do not call solver, only print instance in given format" << endl;
 	cout << "	-o                  : oneshot solve, do not perform any subsequent calls" << endl;
-	cout << "	-b base_algorithm   : base algorithm to be used. Available options are asp-mks|asp-soc|sat-mks|sat-soc" << endl;
+	cout << "	-b base_algorithm   : base algorithm to be used. Available options are ";
+		for (size_t n = 0; n < solver_names.size(); n++) {cout << solver_names[n] << " ";}
+		cout << endl;
 	cout << "	-i agents_file      : path to an agents file" << endl;
 	cout << "	-s strategy         : strategy to be used. Available options are b|m|p|c" << endl;
 	cout << "	-t timeout          : timeout of the computation in s. Default value is 300s" << endl;

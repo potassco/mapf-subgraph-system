@@ -1,12 +1,12 @@
 #!/bin/bash
 
-timeout=300
+timeout=100
 
 for instance in resources/scenarios/*
 do
-	for alg in asp-mks
+	for alg in asp-mks asp-soc asp-inc-mks asp-inc-soc
 	do
-		for strategy in p
+		for strategy in b m p c
 		do
 			for path in biased
 			do
