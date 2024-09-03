@@ -31,6 +31,7 @@ private:
 	std::vector<std::vector<AtomInfo> > added_timesteps; //added_timesteps[agent][vertex_ID]
 	Clingo::Control* ctl = NULL;
 	std::vector<Clingo::SymbolicLiteral> assumptions_vector;
+	int GetDistance(Vertex, Vertex);
 
 	bool solved;
 };

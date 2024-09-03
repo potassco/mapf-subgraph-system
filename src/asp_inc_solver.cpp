@@ -280,10 +280,13 @@ int AspIncSolver::ReadResults(int agent_number, int bonus_cost)
 vector<pair<int,int> > AspIncSolver::GetTRange(int agent_number, int bonus_cost, int a, Vertex v, int max_t, int k)
 {
     int v_ID = inst->map[v.x][v.y];
-    int earliest = inst->length_from_start[a][v_ID];
+    int earliest = GetDistance(inst->agents[a].start, v);//inst->length_from_start[a][v_ID];
     int first_timestep_used = added_timesteps[a][v_ID].first_timestep;
-    int latest = max_t - inst->length_from_goal[a][v_ID];
+    int latest = max_t - GetDistance(v, inst->agents[a].goal);//inst->length_from_goal[a][v_ID];
     int last_timestep_used = added_timesteps[a][v_ID].last_timestep;
+
+    //cout << "distance for agent " << a << " from " << inst->agents[a].start << " to " << v << " is " << GetDistance(inst->agents[a].start, v) << endl;
+    //cout << "distance for agent " << a << " from " << v << " to " << inst->agents[a].goal << " is " << GetDistance(v, inst->agents[a].goal) << endl;
 
     vector<pair<int,int> > return_vc;
 
@@ -299,7 +302,7 @@ vector<pair<int,int> > AspIncSolver::GetTRange(int agent_number, int bonus_cost,
         }
     }
 
-    if (earliest > latest)  // the vertex is not reachable
+    if (earliest > latest || earliest == -1)  // the vertex is not reachable
     {
         return return_vc;
     }
@@ -313,16 +316,30 @@ vector<pair<int,int> > AspIncSolver::GetTRange(int agent_number, int bonus_cost,
         return return_vc;
     }
 
+    // previously reachable time is no longer reachable due to different corridor
     if (first_timestep_used < earliest)
     {
-        cout << "this should not happen" << endl;
-        return return_vc;
+        for (int t = first_timestep_used; t < earliest; t++)
+        {
+            auto xy_reach_func = Clingo::Function("", {Clingo::Number(v.x+1), Clingo::Number(v.y+1)});
+            Clingo::SymbolicLiteral lit(Clingo::Function("at", {Clingo::Number(a), xy_reach_func, Clingo::Number(t)}), false);
+            assumptions_vector.push_back(lit);
+
+            //cout << "remove agent " << a << " in " << v << " at timestep " << t << endl;
+        }
     }
 
+    // previously reachable time is no longer reachable due to different corridor
     if (last_timestep_used > latest)
     {
-        cout << "this should not happen" << endl;
-        return return_vc;
+        for (int t = latest + 1; t <= last_timestep_used; t++)
+        {
+            auto xy_reach_func = Clingo::Function("", {Clingo::Number(v.x+1), Clingo::Number(v.y+1)});
+            Clingo::SymbolicLiteral lit(Clingo::Function("at", {Clingo::Number(a), xy_reach_func, Clingo::Number(t)}), false);
+            assumptions_vector.push_back(lit);
+
+            //cout << "remove agent " << a << " in " << v << " at timestep " << t << endl;
+        }
     }
 
     if (first_timestep_used > earliest) // should not happen with the current strategies
@@ -339,4 +356,46 @@ vector<pair<int,int> > AspIncSolver::GetTRange(int agent_number, int bonus_cost,
     }
 
     return return_vc;
+}
+
+// using BFS, perhaps improve to A* in the future
+int AspIncSolver::GetDistance(Vertex start, Vertex goal)
+{
+	queue<Vertex> que;
+
+	vector<int> dist = vector<int> (inst->number_of_vertices, -1);
+    dist[inst->map[start.x][start.y]] = 0;
+	que.push(start);
+
+	while(!que.empty())
+	{
+		Vertex v = que.front();
+		que.pop();
+
+        if (v == goal)
+            return dist[inst->map[goal.x][goal.y]];
+
+		if (v.x > 0 && subg->computed_map[v.x - 1][v.y] != -1 && dist[inst->map[v.x - 1][v.y]] == -1)
+		{
+			dist[inst->map[v.x - 1][v.y]] = dist[inst->map[v.x][v.y]] + 1;
+			que.push({v.x - 1, v.y});
+		}
+		if (v.x < inst->height - 1 && subg->computed_map[v.x + 1][v.y] != -1 && dist[inst->map[v.x + 1][v.y]] == -1)
+		{
+			dist[inst->map[v.x + 1][v.y]] = dist[inst->map[v.x][v.y]] + 1;
+			que.push({v.x + 1, v.y});
+		}
+		if (v.y > 0 && subg->computed_map[v.x][v.y - 1] != -1 && dist[inst->map[v.x][v.y - 1]] == -1)
+		{
+			dist[inst->map[v.x][v.y - 1]] = dist[inst->map[v.x][v.y]] + 1;
+			que.push({v.x, v.y - 1});
+		}
+		if (v.y < inst->width - 1 && subg->computed_map[v.x][v.y + 1] != -1 && dist[inst->map[v.x][v.y + 1]] == -1)
+		{
+			dist[inst->map[v.x][v.y + 1]] = dist[inst->map[v.x][v.y]] + 1;
+			que.push({v.x, v.y + 1});
+		}
+	}
+
+    return -1;
 }
