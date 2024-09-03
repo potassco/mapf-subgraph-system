@@ -23,6 +23,12 @@ struct Vertex
 			return true;
 		return false;
     }
+
+	friend std::ostream& operator<<(std::ostream& os, const Vertex& v)
+	{
+		os << "[" << v.x << "," << v.y << "]";
+		return os;
+	}
 };
 
 struct Agent
