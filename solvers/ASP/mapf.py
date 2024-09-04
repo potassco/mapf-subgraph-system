@@ -136,10 +136,11 @@ class SocMAPF:
         
         if solvable is None:
             # if an agent can not reach its goal, then make the program UNSAT
-            with ctl.backend() as bck:
-                bck.add_rule([])
+            #with ctl.backend() as bck:
+            #    bck.add_rule([])
             Count.add("Unreachable goal")
-
+            return UNSAT
+        
         # ground the rest
         ctl.ground(parts)
 
@@ -198,10 +199,9 @@ class SocMAPF:
         else:
             print("jumping")
             new_delta = self._bound - minsoc
-
-            if old_method:
-                # old method starts with makespan but uses SoC in the jump.
-                OBJECTIVE = cmapf.Objective.SUM_OF_COSTS
+            
+            # set objective in case old jump method was used
+            OBJECTIVE = cmapf.Objective.SUM_OF_COSTS
 
             res = self.call_clingo_ctl(encodings+[instance], clingo_args, delta=new_delta)
 

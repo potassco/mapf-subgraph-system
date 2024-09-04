@@ -19,14 +19,14 @@ time(A,1..T) :- agent(A), horizon(A,T).
 at(A,P,0) :- start(A,P), agent(R).
 
 % if using asp to calculate reachability
-{ move(A,U,V,T) : edge(U,V), reach(A,V,T)} 1 :- reach(A,U,T-1).
+{ move(A,U,V,T) : edge(U,V), reach(A,V,T)} 1 :- reach(A,U,T-1), time(A,T).
 
 % - move ------------------------------------------------------------------
 at(A,V,T) :- move(A,_,V,T).
           :- move(A,U,_,T), not at(A,U,T-1).
 
 % - inertia ---------------------------------------------------------------
-at(A,V,T) :- at(A,V,T-1), not move(A,V,_,T), time(A,T).
+at(A,V,T) :- at(A,V,T-1), not move(A,V,_,T), time(A,T), reach(A,V,T).
 
 % - vertex collision ------------------------------------------------------
  :- { at(A,V,T) } > 1, vertex(V), time(_,T).
@@ -37,10 +37,6 @@ at(A,V,T) :- at(A,V,T-1), not move(A,V,_,T), time(A,T).
 
 % - auxiliaries -------------------------------------------- redundant ----
  :- { at(A,V,T) } != 1, agent(A), time(A,T).
-% can not be somewhere that is not reachable
-:- at(A,V,T), not reach(A,V,T), time(A,T).
-% if an agent can not reach his goal
-:- goal(A,V), not reach(A,V,T), horizon(A,T).
  % - query -----------------------------------------------------------------
 :- goal(A,V), not at(A,V,T), horizon(A,T).
 
