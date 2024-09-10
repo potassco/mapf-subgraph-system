@@ -32,6 +32,7 @@ private:
 	Clingo::Control* ctl = NULL;
 	std::vector<Clingo::SymbolicLiteral> assumptions_vector;
 	int GetDistance(Vertex, Vertex);
+	static void WaitForTerminate(int, Clingo::Control*, bool&);
 
 	bool solved;
 };

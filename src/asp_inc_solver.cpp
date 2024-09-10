@@ -46,6 +46,9 @@ int AspIncSolver::Solve(int agent_number, int bonus_cost)
 		return 0;
 
 	solved = false;
+    bool ended = false;
+	thread waiting_thread = thread(WaitForTerminate, timeout*1000, ctl, ref(ended));
+
 	for(auto& m : ctl->solve((Clingo::SymbolicLiteralSpan)assumptions_vector))
 	{
 		// found solution
@@ -54,6 +57,8 @@ int AspIncSolver::Solve(int agent_number, int bonus_cost)
         //for(auto& a : m.symbols(Clingo::ShowType::Shown))
         //    cout << a.to_string() << endl;
 	}
+    ended = true;
+    waiting_thread.join();
 
 	return ReadResults(agent_number, bonus_cost);
 }
@@ -398,4 +403,21 @@ int AspIncSolver::GetDistance(Vertex start, Vertex goal)
 	}
 
     return -1;
+}
+
+void AspIncSolver::WaitForTerminate(int time_left_ms, Clingo::Control* ctl, bool& ended)
+{
+	while (time_left_ms > 0)
+	{
+		if (ended)
+			return;
+
+		this_thread::sleep_for(std::chrono::milliseconds(50));
+		time_left_ms -= 50;
+	}
+
+	if (ended)
+		return;
+		
+	ctl->interrupt();	// Trusting in clingo implementation
 }

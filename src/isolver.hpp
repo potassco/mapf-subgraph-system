@@ -1,6 +1,7 @@
 #pragma once
 
 #include <unistd.h>
+#include <thread>
 
 #include "instance.hpp"
 #include "subgraph_maker.hpp"
