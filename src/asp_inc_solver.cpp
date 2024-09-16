@@ -347,9 +347,8 @@ vector<pair<int,int> > AspIncSolver::GetTRange(int agent_number, int bonus_cost,
         }
     }
 
-    if (first_timestep_used > earliest) // should not happen with the current strategies
+    if (first_timestep_used > earliest)
     {
-        cout << "this should not happen with the current strategies" << endl;
         added_timesteps[a][v_ID].first_timestep = earliest;
         return_vc.push_back({earliest, first_timestep_used-1});
     }
