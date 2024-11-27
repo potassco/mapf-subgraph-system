@@ -2,11 +2,11 @@
 
 timeout=100
 
-for instance in resources/scenarios/*
-do
-	for alg in asp-mks asp-soc asp-inc-mks asp-inc-soc
+for strategy in b m p c
+		do
+	for instance in resources/scenarios/random16*
 	do
-		for strategy in b m p c
+		for alg in asp-mks asp-soc asp-inc-mks asp-inc-soc
 		do
 			for path in biased
 			do

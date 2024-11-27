@@ -9,8 +9,8 @@
 class ISolver
 {
 public:
-	ISolver(bool d, bool ns, std::string a, Instance* i, SubgraphMaker* c, std::string wd, std::string sd, std::string af, std::string rd) : 
-		debug(d), no_solve(ns), alg(a), inst(i), subg(c), work_dir(wd), stat_dir(sd), agent_file(af), run_dir(rd)
+	ISolver(std::string a, Instance* i, SubgraphMaker* c, std::string wd, std::string sd, std::string af, std::string rd) : 
+		alg(a), inst(i), subg(c), work_dir(wd), stat_dir(sd), agent_file(af), run_dir(rd)
 		{}; 
 	virtual int Solve(int, int) = 0;
 	virtual void PrintInstance(int, int) = 0;
@@ -38,8 +38,6 @@ public:
 protected:
 	Instance* inst;
 	SubgraphMaker* subg;
-	bool debug;
-	bool no_solve;
 
 	std::string alg;
 	std::string work_dir;

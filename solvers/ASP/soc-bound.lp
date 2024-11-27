@@ -9,4 +9,4 @@ bound(H+D) :- H = #sum{T,A : sp_length(A,T)}, delta(D).
 
 :- #sum{ 1,A,T : penalty(A,T) } > B, bound(B).
 
-#show penalty/2.
+% #show penalty/2.

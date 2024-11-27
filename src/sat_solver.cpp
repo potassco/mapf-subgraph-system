@@ -11,10 +11,7 @@ int SatSolver::Solve(int agent_number, int bonus_cost)
 	solver_call++;
 
 	io_file_name.clear();
-	if (debug)
-		io_file_name.append(inst->agents_file + "_" + alg + "_" + inst->path_type + "_" + name + "_" + to_string(agent_number) + "_" + to_string(solver_call));
-	else
-		io_file_name.append(inst->agents_file + "_" + alg + "_" + inst->path_type + "_" + name);
+	io_file_name.append(inst->agents_file + "_" + alg + "_" + inst->path_type + "_" + name);
 
 	subg->GiveNewNumbering();
 
@@ -28,9 +25,6 @@ int SatSolver::Solve(int agent_number, int bonus_cost)
 			<< " -t " << timeout
 			<< " -d " << bonus_cost
 			<< " -l 1 -o -q > " << run_dir << "/" << io_file_name << ".out";
-
-	if (no_solve) // do not call solver, just assume success
-		return 0;
 
 	int ret = system(exec.str().c_str());
 

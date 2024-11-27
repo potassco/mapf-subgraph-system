@@ -3,7 +3,7 @@
 #include <numeric>
 #include <math.h>
 
-#include "../solvers/ASP-INC/clingo.hh"
+#include "../solvers/ASP/clingo.hh"
 
 #include "isolver.hpp"
 

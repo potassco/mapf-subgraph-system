@@ -122,7 +122,81 @@ bool SubgraphMaker::FlattenMaps()
 					computed_map[i][j] = 0;
 					individual_maps[a][i][j] = 0;
 				}
+
+	if (changed) // map has changed, recalculate the distances!
+	{
+		length_from_start = vector<vector<int> >(inst->agents.size(), vector<int>(inst->number_of_vertices, -1));
+		length_from_goal = vector<vector<int> >(inst->agents.size(), vector<int>(inst->number_of_vertices, -1));
+
+		for (size_t i = 0; i < individual_maps.size(); i++)
+		{
+			BFS(length_from_start[i], inst->agents[i].start);
+			BFS(length_from_goal[i], inst->agents[i].goal);
+		}
+	}
+
 	return changed;
+}
+
+pair<int, int> SubgraphMaker::GetReachTimesMKS(int a, int total_agents, Vertex v, int delta)
+{
+	int start_t = length_from_start[a][inst->map[v.x][v.y]];
+	int end_t = inst->GetMksLB(total_agents) + delta - length_from_goal[a][inst->map[v.x][v.y]];
+
+	return pair<int,int>(start_t, end_t);
+}
+
+pair<int, int> SubgraphMaker::GetReachTimesSOC(int a, int total_agents, Vertex v, int delta)
+{
+	int start_t = length_from_start[a][inst->map[v.x][v.y]];
+	int end_t = 0;
+
+	// the node is unreachable in the current subgraph
+	if (start_t == -1)
+		return pair<int,int>(start_t, -2);
+
+	int at_goal = inst->SP_lengths[a] + delta;
+	for (int other_a = 0; other_a < total_agents; other_a++)
+		if (other_a != a && inst->agents[other_a].goal == v)
+			at_goal = inst->SP_lengths[other_a] + delta;
+	end_t = min(inst->SP_lengths[a] + delta - length_from_goal[a][inst->map[v.x][v.y]], at_goal);
+
+	return pair<int,int>(start_t, end_t);
+}
+
+void SubgraphMaker::BFS(vector<int>& length_from, Vertex start)
+{
+	queue<Vertex> que;
+
+	length_from[inst->map[start.x][start.y]] = 0;
+	que.push(start);
+
+	while(!que.empty())
+	{
+		Vertex v = que.front();
+		que.pop();
+
+		if (v.x > 0 && computed_map[v.x - 1][v.y] != -1 && length_from[inst->map[v.x - 1][v.y]] == -1)
+		{
+			length_from[inst->map[v.x - 1][v.y]] = length_from[inst->map[v.x][v.y]] + 1;
+			que.push({v.x - 1, v.y});
+		}
+		if (v.x < inst->height - 1 && computed_map[v.x + 1][v.y] != -1 && length_from[inst->map[v.x + 1][v.y]] == -1)
+		{
+			length_from[inst->map[v.x + 1][v.y]] = length_from[inst->map[v.x][v.y]] + 1;
+			que.push({v.x + 1, v.y});
+		}
+		if (v.y > 0 && computed_map[v.x][v.y - 1] != -1 && length_from[inst->map[v.x][v.y - 1]] == -1)
+		{
+			length_from[inst->map[v.x][v.y - 1]] = length_from[inst->map[v.x][v.y]] + 1;
+			que.push({v.x, v.y - 1});
+		}
+		if (v.y < inst->width - 1 && computed_map[v.x][v.y + 1] != -1 && length_from[inst->map[v.x][v.y + 1]] == -1)
+		{
+			length_from[inst->map[v.x][v.y + 1]] = length_from[inst->map[v.x][v.y]] + 1;
+			que.push({v.x, v.y + 1});
+		}
+	}
 }
 
 /**************** LEGACY *****************/

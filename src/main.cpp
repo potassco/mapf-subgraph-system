@@ -16,9 +16,7 @@ void printHelp(char**);
 int main(int argc, char** argv) 
 {
 	bool hflag = false;
-	bool dflag = false;
 	bool oflag = false;
-	bool nflag = false;
 	char *svalue = NULL;
 	char *ivalue = NULL;
 	char *bvalue = NULL;
@@ -45,21 +43,15 @@ int main(int argc, char** argv)
 	// parse arguments
 	opterr = 0;
 	char c;
-	while ((c = getopt (argc, argv, "hdoni:s:b:t:p:a:k:")) != -1)
+	while ((c = getopt (argc, argv, "hoi:s:b:t:p:a:k:")) != -1)
 	{
 		switch (c)
 		{
 			case 'h':
 				hflag = true;
 				break;
-			case 'd':
-				dflag = true;
-				break;
 			case 'o':
 				oflag = true;
-				break;
-			case 'n':
-				nflag = true;
 				break;
 			case 'i':
 				ivalue = optarg;
@@ -139,7 +131,7 @@ int main(int argc, char** argv)
 	Strategy* strat;
 
 	if (svalue[0] == 'b' || svalue[0] == 'm' || svalue[0] == 'p' || svalue[0] == 'c')
-		strat = new Strategy(dflag, nflag, oflag, svalue[0], ivalue, bvalue, timeout, init_agents, increment_agents, work_dir, statistics_dir, input_dir, map_dir, run_dir, path_type);
+		strat = new Strategy(oflag, svalue[0], ivalue, bvalue, timeout, init_agents, increment_agents, work_dir, statistics_dir, input_dir, map_dir, run_dir, path_type);
 	else
 	{
 		cout << "Unknown strategy!" << endl;
@@ -159,8 +151,6 @@ void printHelp(char* argv[])
 	cout << "Usage of this generator:" << endl;
 	cout << argv[0] << " [-h] [-d] [-n] [-o] -b base_algorithm -i agents_file -s strategy [-t timeout] [-p shortest_path] [-P] [-a initial_agents] [-k agents_increment]" << endl;
 	cout << "	-h                  : prints help and exits" << endl;
-	cout << "	-d                  : debug print - keep all of the used instance and output files" << endl;
-	cout << "	-n                  : do not call solver, only print instance in given format" << endl;
 	cout << "	-o                  : oneshot solve, do not perform any subsequent calls" << endl;
 	cout << "	-b base_algorithm   : base algorithm to be used. Available options are ";
 		for (size_t n = 0; n < solver_names.size(); n++) {cout << solver_names[n] << " ";}

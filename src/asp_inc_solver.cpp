@@ -33,17 +33,14 @@ int AspIncSolver::Solve(int agent_number, int bonus_cost)
 		// clingo init
 		ctl = new Clingo::Control{{"--opt-strategy=usc", "--warn=none"}};
 		io_file_name.clear();
-		ctl->load(io_file_name.append(work_dir + "/ASP-INC/encodings/mapf-inc2.lp").c_str());
+		ctl->load(io_file_name.append(work_dir + "/ASP-INC/solver-inc2.lp").c_str());
         io_file_name.clear();
-        ctl->load(io_file_name.append(work_dir + "/ASP-INC/encodings/soc-bound.lp").c_str());
+        ctl->load(io_file_name.append(work_dir + "/ASP-INC/soc-bound.lp").c_str());
         CreateInitialInstance(agent_number);
         added_timesteps = vector<vector<AtomInfo> >(agent_number, vector<AtomInfo>(inst->number_of_vertices, {-1,-2}));
 	}
 
 	PrintInstance(agent_number, bonus_cost);
-
-	if (no_solve) // do not call solver, just assume success
-		return 0;
 
 	solved = false;
     bool ended = false;
@@ -284,28 +281,22 @@ int AspIncSolver::ReadResults(int agent_number, int bonus_cost)
 
 vector<pair<int,int> > AspIncSolver::GetTRange(int agent_number, int bonus_cost, int a, Vertex v, int max_t, int k)
 {
+    pair<int,int> reach_times;
+    if (!name.compare("mks"))
+        reach_times = subg->GetReachTimesMKS(a, agent_number, v, bonus_cost);
+    if (!name.compare("soc"))
+        reach_times = subg->GetReachTimesSOC(a, agent_number, v, bonus_cost);
+
     int v_ID = inst->map[v.x][v.y];
-    int earliest = GetDistance(inst->agents[a].start, v);//inst->length_from_start[a][v_ID];
+    int earliest = reach_times.first;
     int first_timestep_used = added_timesteps[a][v_ID].first_timestep;
-    int latest = max_t - GetDistance(v, inst->agents[a].goal);//inst->length_from_goal[a][v_ID];
+    int latest = reach_times.second;
     int last_timestep_used = added_timesteps[a][v_ID].last_timestep;
 
     //cout << "distance for agent " << a << " from " << inst->agents[a].start << " to " << v << " is " << GetDistance(inst->agents[a].start, v) << endl;
     //cout << "distance for agent " << a << " from " << v << " to " << inst->agents[a].goal << " is " << GetDistance(v, inst->agents[a].goal) << endl;
 
     vector<pair<int,int> > return_vc;
-
-    if (!name.compare("soc"))   // the vertex is someone's goal, it is not reachable after they reach it
-    {
-        bool is_goal = false;
-        for (int other_ag = 0; other_ag < agent_number; other_ag++)
-        {
-            if (other_ag == a)
-                continue;
-            if (inst->agents[other_ag].goal == v)
-                latest = min(inst->SP_lengths[other_ag] + bonus_cost - 1, latest);
-        }
-    }
 
     if (earliest > latest || earliest == -1)  // the vertex is not reachable
     {
@@ -360,48 +351,6 @@ vector<pair<int,int> > AspIncSolver::GetTRange(int agent_number, int bonus_cost,
     }
 
     return return_vc;
-}
-
-// using BFS, perhaps improve to A* in the future
-int AspIncSolver::GetDistance(Vertex start, Vertex goal)
-{
-	queue<Vertex> que;
-
-	vector<int> dist = vector<int> (inst->number_of_vertices, -1);
-    dist[inst->map[start.x][start.y]] = 0;
-	que.push(start);
-
-	while(!que.empty())
-	{
-		Vertex v = que.front();
-		que.pop();
-
-        if (v == goal)
-            return dist[inst->map[goal.x][goal.y]];
-
-		if (v.x > 0 && subg->computed_map[v.x - 1][v.y] != -1 && dist[inst->map[v.x - 1][v.y]] == -1)
-		{
-			dist[inst->map[v.x - 1][v.y]] = dist[inst->map[v.x][v.y]] + 1;
-			que.push({v.x - 1, v.y});
-		}
-		if (v.x < inst->height - 1 && subg->computed_map[v.x + 1][v.y] != -1 && dist[inst->map[v.x + 1][v.y]] == -1)
-		{
-			dist[inst->map[v.x + 1][v.y]] = dist[inst->map[v.x][v.y]] + 1;
-			que.push({v.x + 1, v.y});
-		}
-		if (v.y > 0 && subg->computed_map[v.x][v.y - 1] != -1 && dist[inst->map[v.x][v.y - 1]] == -1)
-		{
-			dist[inst->map[v.x][v.y - 1]] = dist[inst->map[v.x][v.y]] + 1;
-			que.push({v.x, v.y - 1});
-		}
-		if (v.y < inst->width - 1 && subg->computed_map[v.x][v.y + 1] != -1 && dist[inst->map[v.x][v.y + 1]] == -1)
-		{
-			dist[inst->map[v.x][v.y + 1]] = dist[inst->map[v.x][v.y]] + 1;
-			que.push({v.x, v.y + 1});
-		}
-	}
-
-    return -1;
 }
 
 void AspIncSolver::WaitForTerminate(int time_left_ms, Clingo::Control* ctl, bool& ended)

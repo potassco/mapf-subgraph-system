@@ -46,3 +46,6 @@ at(A,V,T) :- at(A,V,T-1), not move(A,V,_,T), time(A,T), reach(A,V,T).
 % #show horizon/2.
 % #show sp_length/2.
 % #show delta/1.
+% #show reach/3.
+% #show edge/2.
+% #show time/2.

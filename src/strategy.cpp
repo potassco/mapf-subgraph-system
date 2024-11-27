@@ -2,7 +2,7 @@
 
 using namespace std;
 
-Strategy::Strategy(bool debug, bool no_solve, bool os, char c, string af, string bs, int to, int a, int k, string wd, string sd, string id, string md, string rd, string path)
+Strategy::Strategy(bool os, char c, string af, string bs, int to, int a, int k, string wd, string sd, string id, string md, string rd, string path)
 {
 	inst = new Instance(md, id, GetFilename(af), path);
 	subg = new SubgraphMaker(inst);
@@ -41,39 +41,39 @@ Strategy::Strategy(bool debug, bool no_solve, bool os, char c, string af, string
 
 	if (bs.compare("asp-mks") == 0)
 	{
-		sol = new AspSolver(debug, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
-		sol->name = "makespan";
+		sol = new AspSolver(alg, inst, subg, wd, sd, GetFilename(af), rd);
+		sol->name = "mks";
 	}
 
 	if (bs.compare("asp-soc") == 0)
 	{
-		sol = new AspSolver(debug, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
-		sol->name = "soc-iter";
+		sol = new AspSolver(alg, inst, subg, wd, sd, GetFilename(af), rd);
+		sol->name = "soc";
 		subg->soc = true;
 	}
 
 	if (bs.compare("asp-inc-mks") == 0)
 	{
-		sol = new AspIncSolver(debug, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
+		sol = new AspIncSolver(alg, inst, subg, wd, sd, GetFilename(af), rd);
 		sol->name = "mks";
 	}
 
 	if (bs.compare("asp-inc-soc") == 0)
 	{
-		sol = new AspIncSolver(debug, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
+		sol = new AspIncSolver(alg, inst, subg, wd, sd, GetFilename(af), rd);
 		sol->name = "soc";
 		subg->soc = true;
 	}
 
 	if (bs.compare("sat-mks") == 0)
 	{
-		sol = new SatSolver(debug, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
+		sol = new SatSolver(alg, inst, subg, wd, sd, GetFilename(af), rd);
 		sol->name = "mks";
 	}
 
 	if (bs.compare("sat-soc") == 0)
 	{
-		sol = new SatSolver(debug, no_solve, alg, inst, subg, wd, sd, GetFilename(af), rd);
+		sol = new SatSolver(alg, inst, subg, wd, sd, GetFilename(af), rd);
 		sol->name = "soc";
 		subg->soc = true;
 	}
@@ -127,6 +127,12 @@ int Strategy::RunTests()
 
 			mks_LB = inst->GetMksLB(number_of_agents_to_compute);
 			soc_LB = inst->GetSocLB(number_of_agents_to_compute);
+
+			if (B)
+			{
+				subg->length_from_start = inst->length_from_start;
+				subg->length_from_goal = inst->length_from_goal;
+			}
 
 			if (M)
 			{
